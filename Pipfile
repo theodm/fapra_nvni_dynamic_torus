@@ -6,6 +6,11 @@ name = "pypi"
 [packages]
 networkx = "*"
 plotly = "*"
+matplotlib = "*"
+pytest = "*"
+pandas = "*"
+black = "*"
+scikit-image = "*"
 
 [dev-packages]
 
