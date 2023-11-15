@@ -7,6 +7,7 @@ from math import pi, cos, sin
 import random
 
 from create import create_farbtupfer_2d_grid_network, create_random_2d_grid_network
+from inferno_color_map import inferno
 
 
 
@@ -45,12 +46,9 @@ def draw_torus(g: networkx.Graph, colors: list):
                                mode='markers',
                                marker=dict(symbol='circle',
                                            size=4,
-                                           # color the nodes according to their community
-                                           color=[g.nodes[n]["information"] - 1 for n in g.nodes()],
-                                           # either green or mageneta
-                                           colorscale=colors,
+                                           color=[colors[g.nodes[n]["information"]] for n in g.nodes()],
                                            line=dict(color='black', width=0.5)),
-                               text=[g.nodes[n]["information"] for n in g.nodes()],
+                               text=[(f"({n[0]}, {n[1]})" + str(g.nodes[n]["information"])) for n in g.nodes()],
                                hoverinfo='text')
 
     axis = dict(showbackground=False,
@@ -76,9 +74,15 @@ def draw_torus(g: networkx.Graph, colors: list):
 
     fig.show()
 
-# colors = ["#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231",
-#             "#911eb4", "#46f0f0", "#f032e6", "#bcf60c", "#fabebe"]
+num_distinct_information = 100
 
-# draw_torus(g, colors)
+g = create_farbtupfer_2d_grid_network(200, 200, number_of_distinct_informations=num_distinct_information)
 
-# # %%
+# inferno color map
+colors = inferno(num_distinct_information)
+
+print(colors)
+
+draw_torus(g, colors)
+
+#%%

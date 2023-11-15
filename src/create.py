@@ -2,6 +2,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import networkx
 from math import pi, cos, sin
+
 import random
 
 def map_2d_point_to_3d_torus(x: int, y: int, width: int, height: int, R1: float = 5.0, R2: float = 3.0):
@@ -29,7 +30,7 @@ def map_2d_point_to_3d_torus(x: int, y: int, width: int, height: int, R1: float 
     return (x, y, z)
 
 
-def create_random_2d_grid_network(height: int, width: int) -> networkx.Graph:
+def create_random_2d_grid_network(height: int, width: int, number_of_distinct_informations: int = 10) -> networkx.Graph:
     """
     Erstellt einen Graphen in Form eines Netzes mit den angegebenen Höhen- und Breitenmaßen. Dabei
     erhalten die Knoten zufällige Informationen zwischen 1 und 10. Die Koordinaten der Knoten in einem Torus
@@ -38,6 +39,7 @@ def create_random_2d_grid_network(height: int, width: int) -> networkx.Graph:
     Args:
         height (int): Die Höhe des Torus.
         width (int): Die Breite des Torus.
+        number_of_distinct_informations (int, optional): Die Anzahl der unterschiedlichen Informationen. 
 
     Returns:
         networkx.Graph: Der erstellte Graph.
@@ -54,19 +56,16 @@ def create_random_2d_grid_network(height: int, width: int) -> networkx.Graph:
         g.nodes[node]['z_pos'] = t_pos[2]
 
         # Zufällige Information (1-10)
-        g.nodes[node]['information'] = random.randint(1, 10)
+        g.nodes[node]['information'] = random.randint(0, number_of_distinct_informations - 1)
 
     return g
 
 
-def create_farbtupfer_2d_grid_network(height: int, width: int) -> networkx.Graph:
+
+def create_farbtupfer_2d_grid_network(height: int, width: int, radius = 2, overflow_to_zero = False, number_of_distinct_informations = 10) -> networkx.Graph:
     g = networkx.grid_2d_graph(height, width, periodic=True)
 
-    # 1/10 aller Knoten erhalten die gesuchte Information
-    searched_information_count = 15
-
-    # Zufällige Knoten auswählen
-    searched_information_nodes = random.sample(list(g.nodes()), searched_information_count)
+    nodes_to_visit = int((height * width) / 5) * int(number_of_distinct_informations / 10)
 
     for node in g.nodes():
         t_pos = map_2d_point_to_3d_torus(node[0], node[1], width, height)
@@ -78,8 +77,8 @@ def create_farbtupfer_2d_grid_network(height: int, width: int) -> networkx.Graph
 
         g.nodes[node]['information'] = 0
 
-    for node in searched_information_nodes:
-        radius = 2
+    for i in range(nodes_to_visit):
+        node = random.choice(list(g.nodes()))
 
         def sub_width_overflow(a, b):
             if a - b < 0:
@@ -105,13 +104,9 @@ def create_farbtupfer_2d_grid_network(height: int, width: int) -> networkx.Graph
             
             return a + b
         
-        # Alle Knoten in einem Radius von 2 erhalten die gesuchte Information
         for x in range(sub_width_overflow(node[0], radius), add_width_overflow(node[0], radius) + 1):
             for y in range(sub_height_overflow(node[1], radius), add_height_overflow(node[1], radius) + 1):
-                g.nodes[(x, y)]['information'] = 5
-
-
-    
+                g.nodes[(x, y)]['information'] = min(g.nodes[(x, y)]['information'] + 1, number_of_distinct_informations - 1)
 
     return g
         

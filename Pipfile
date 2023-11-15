@@ -11,6 +11,8 @@ pandas = "*"
 matplotlib = "*"
 nbformat = "*"
 dataset = "*"
+colour = "*"
+seaborn = "*"
 
 [dev-packages]
 ipykernel = "*"
