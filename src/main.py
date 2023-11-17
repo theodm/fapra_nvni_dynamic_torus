@@ -8,7 +8,7 @@ from math import pi, cos, sin
 import random
 
 from src.colormap import colormap_for_information
-from src.draw_torus import draw_torus
+from src.draw_torus import draw_torus_3d, draw_torus_2d
 from src.ranged_int.ranged_int import ClampedInt, OverflowInt
 from src.torus_creation.blobs_increase_grid import (
     create_random_2d_grid_network_constant_blob_increase,
@@ -26,9 +26,11 @@ from src.torus_creation.lines_increase_grid import (
 from src.torus_creation.random_grid import create_random_2d_grid_network
 from src.torus_creation.random_walker_grid import create_random_2d_grid_random_walkers
 
-num_distinct_information = 100
+num_distinct_information = 50
 
-g = create_random_2d_grid_network(100, 100, num_distinct_information=100)
+g = create_random_2d_grid_network(
+    30, 30, num_distinct_information=num_distinct_information
+)
 # g = create_random_2d_grid_network_constant_blob_increase(
 #     100,
 #     100,
@@ -79,10 +81,18 @@ g = create_random_2d_grid_network(100, 100, num_distinct_information=100)
 #     int_mode="overflow",
 # )
 
+# Zufällige Kanten im Graphen hinzufügen
+for i in range(10):
+    g.add_edge(
+        random.choice(list(g.nodes())),
+        random.choice(list(g.nodes())),
+    )
 
-draw_torus(
+draw_torus_2d(
     g,
     num_distinct_information=num_distinct_information,
+    width=30,
+    height=30,
     color_mode="normal",
     target_information=90,
     colormap="inferno",
