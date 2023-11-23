@@ -11,6 +11,7 @@ pytest = "*"
 pandas = "*"
 black = "*"
 scikit-image = "*"
+jupyter = "*"
 
 [dev-packages]
 

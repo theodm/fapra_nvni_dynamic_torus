@@ -1,28 +1,12 @@
 # %%
 from typing import Literal
 
-import plotly.express as px
 import plotly.graph_objects as go
 import networkx
-from math import pi, cos, sin
 import random
 
-from src.colormap import colormap_for_information
-from src.ranged_int.ranged_int import ClampedInt, OverflowInt
-from src.torus_creation.blobs_increase_grid import (
-    create_random_2d_grid_network_constant_blob_increase,
-)
-from src.torus_creation.image_grid import create_2d_grid_from_image
-from src.torus_creation.information_blobs_grid import (
-    create_random_2d_grid_network_information_blobs,
-)
-from src.torus_creation.information_lines_grid import (
-    create_random_2d_grid_network_information_lines,
-)
-from src.torus_creation.lines_increase_grid import (
-    create_random_2d_grid_network_constant_lines_increase,
-)
-from src.torus_creation.random_walker_grid import create_random_2d_grid_random_walkers
+from src.plot.colormap import colormap_for_information
+from src.ranged_int.ranged_int import OverflowInt
 
 
 def get_line_points_from_edge_to_edge(

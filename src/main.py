@@ -1,35 +1,13 @@
-# %%
-from typing import Literal
-
-import plotly.express as px
-import plotly.graph_objects as go
-import networkx
-from math import pi, cos, sin
-import random
-
-from src.colormap import colormap_for_information
-from src.draw_torus import draw_torus_3d, draw_torus_2d
-from src.ranged_int.ranged_int import ClampedInt, OverflowInt
-from src.torus_creation.blobs_increase_grid import (
-    create_random_2d_grid_network_constant_blob_increase,
-)
-from src.torus_creation.image_grid import create_2d_grid_from_image
-from src.torus_creation.information_blobs_grid import (
-    create_random_2d_grid_network_information_blobs,
-)
-from src.torus_creation.information_lines_grid import (
-    create_random_2d_grid_network_information_lines,
-)
-from src.torus_creation.lines_increase_grid import (
-    create_random_2d_grid_network_constant_lines_increase,
-)
+from src.plot.draw_torus import draw_torus_2d
+from src.plot.plot_information_distribution import plot_information_distribution
 from src.torus_creation.random_grid import create_random_2d_grid_network
-from src.torus_creation.random_walker_grid import create_random_2d_grid_random_walkers
 
 num_distinct_information = 50
+width = 30
+height = 30
 
 g = create_random_2d_grid_network(
-    30, 30, num_distinct_information=num_distinct_information
+    width, height, num_distinct_information=num_distinct_information
 )
 # g = create_random_2d_grid_network_constant_blob_increase(
 #     100,
@@ -81,19 +59,15 @@ g = create_random_2d_grid_network(
 #     int_mode="overflow",
 # )
 
-# Zufällige Kanten im Graphen hinzufügen
-for i in range(10):
-    g.add_edge(
-        random.choice(list(g.nodes())),
-        random.choice(list(g.nodes())),
-    )
 
 draw_torus_2d(
     g,
     num_distinct_information=num_distinct_information,
-    width=30,
-    height=30,
+    width=width,
+    height=height,
     color_mode="normal",
-    target_information=90,
+    target_information=15,
     colormap="inferno",
 )
+
+plot_information_distribution(g, num_distinct_information)

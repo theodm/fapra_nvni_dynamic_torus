@@ -1,4 +1,4 @@
-from src.draw_torus import get_line_points_from_edge_to_edge
+from src.plot.draw_torus import get_line_points_from_edge_to_edge
 
 
 def draw_lines_between_points(points, width, height):
