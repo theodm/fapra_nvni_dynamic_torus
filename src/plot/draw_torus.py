@@ -83,38 +83,79 @@ def get_line_points_from_edge_to_edge(
         a, b = b, a
 
     # 1. a liegt links oben von b
-    if a[1] < b[1]:
-        # a
-        # 1/2 Schritt nach rechts und 1/2 Schritt nach unten
-        # (b[0]-a[0]) Schritte nach rechts
-        # (b[1]-a[1]) Schritte nach unten
-        # 1/2 Schritt nach rechts und 1/2 Schritt nach unten
-        # b
+    if a[1] < b[1]:        
+        # Wir gehen entweder nach rechts und dann nach unten 
+        # oder nach unten und dann nach rechts, zufällig;
+        # damit der Graph übersichtlicher wird.
+        go_right_bottom = random.choice([True, False])
 
-        return [
-            (a[0], a[1]),
-            (a[0] + 0.5, a[1] + 0.5),
-            (a[0] + 0.5 + (x_diff - 1), a[1] + 0.5),
-            (a[0] + 0.5 + (x_diff - 1), a[1] + 0.5 + (y_diff - 1)),
-            (b[0], b[1]),
-        ]
+        if go_right_bottom:
+            # a
+            # 1/2 Schritt nach rechts und 1/2 Schritt nach unten
+            # (b[0]-a[0]) Schritte nach rechts
+            # (b[1]-a[1]) Schritte nach unten
+            # 1/2 Schritt nach rechts und 1/2 Schritt nach unten
+            # b
+            return [
+                (a[0], a[1]),
+                (a[0] + 0.5, a[1] + 0.5),
+                (a[0] + 0.5 + (x_diff - 1), a[1] + 0.5),
+                (a[0] + 0.5 + (x_diff - 1), a[1] + 0.5 + (y_diff - 1)),
+                (b[0], b[1]),
+            ]
+        else:
+            # a
+            # 1/2 Schritt nach unten und 1/2 Schritt nach rechts
+            # (b[1]-a[1]) Schritte nach unten
+            # (b[0]-a[0]) Schritte nach rechts
+            # 1/2 Schritt nach unten und 1/2 Schritt nach rechts
+            # b
+            return [
+                (a[0], a[1]),
+                (a[0] + 0.5, a[1] + 0.5),
+                (a[0] + 0.5, a[1] + 0.5 + (y_diff - 1)),
+                (a[0] + 0.5 + (x_diff - 1), a[1] + 0.5 + (y_diff - 1)),
+                (b[0], b[1]),
+            ]
+
 
     # 2. a liegt links unten von b
     if a[1] > b[1]:
-        # a
-        # 1/2 Schritt nach rechts und 1/2 Schritt nach oben
-        # (b[0]-a[0]) Schritte nach rechts
-        # (a[1]-b[1]) Schritte nach oben
-        # 1/2 Schritt nach rechts und 1/2 Schritt nach oben
-        # b
 
-        return [
-            (a[0], a[1]),
-            (a[0] + 0.5, a[1] - 0.5),
-            (a[0] + 0.5 + (x_diff - 1), a[1] - 0.5),
-            (a[0] + 0.5 + (x_diff - 1), a[1] - 0.5 - (y_diff - 1)),
-            (b[0], b[1]),
-        ]
+        # Wir gehen entweder nach rechts und dann nach oben
+        # oder nach oben und dann nach rechts, zufällig;
+        # damit der Graph übersichtlicher wird.
+
+        go_right_top = random.choice([True, False])
+
+        if go_right_top:
+            # a
+            # 1/2 Schritt nach rechts und 1/2 Schritt nach oben
+            # (b[0]-a[0]) Schritte nach rechts
+            # (a[1]-b[1]) Schritte nach oben
+            # 1/2 Schritt nach rechts und 1/2 Schritt nach oben
+            # b
+            return [
+                (a[0], a[1]),
+                (a[0] + 0.5, a[1] - 0.5),
+                (a[0] + 0.5 + (x_diff - 1), a[1] - 0.5),
+                (a[0] + 0.5 + (x_diff - 1), a[1] - 0.5 - (y_diff - 1)),
+                (b[0], b[1]),
+            ]
+        else:
+            # a
+            # 1/2 Schritt nach oben und 1/2 Schritt nach rechts
+            # (a[1]-b[1]) Schritte nach oben
+            # (b[0]-a[0]) Schritte nach rechts
+            # 1/2 Schritt nach oben und 1/2 Schritt nach rechts
+            # b
+            return [
+                (a[0], a[1]),
+                (a[0] + 0.5, a[1] - 0.5),
+                (a[0] + 0.5, a[1] - 0.5 - (y_diff - 1)),
+                (a[0] + 0.5 + (x_diff - 1), a[1] - 0.5 - (y_diff - 1)),
+                (b[0], b[1]),
+            ]
 
     raise ValueError("This should never happen")
 

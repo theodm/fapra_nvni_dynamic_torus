@@ -56,19 +56,37 @@ def test_get_line_points_from_edge_to_edge():
     )
 
     # links oben und rechts unten
-    assert get_line_points_from_edge_to_edge((0, 0), (2, 2), 3, 3) == [
-        (0, 0),
-        (0.5, 0.5),
-        (1.5, 0.5),
-        (1.5, 1.5),
-        (2, 2),
+    assert get_line_points_from_edge_to_edge((0, 0), (2, 2), 3, 3) in [
+        [
+            (0, 0),
+            (0.5, 0.5),
+            (1.5, 0.5),
+            (1.5, 1.5),
+            (2, 2),
+        ],
+        [
+            (0, 0),
+            (0.5, 0.5),
+            (0.5, 1.5),
+            (1.5, 1.5),
+            (2, 2),
+        ],
     ]
-    assert get_line_points_from_edge_to_edge((2, 2), (0, 0), 3, 3) == [
-        (0, 0),
-        (0.5, 0.5),
-        (1.5, 0.5),
-        (1.5, 1.5),
-        (2, 2),
+    assert get_line_points_from_edge_to_edge((2, 2), (0, 0), 3, 3) in [
+        [
+            (0, 0),
+            (0.5, 0.5),
+            (1.5, 0.5),
+            (1.5, 1.5),
+            (2, 2),
+        ],
+        [
+            (0, 0),
+            (0.5, 0.5),
+            (0.5, 1.5),
+            (1.5, 1.5),
+            (2, 2),
+        ],
     ]
 
     # oben mitte und unten mitte
@@ -102,19 +120,37 @@ def test_get_line_points_from_edge_to_edge():
     ]
 
     # oben rechts und unten links
-    assert get_line_points_from_edge_to_edge((2, 0), (0, 2), 3, 3) == [
-        (0, 2),
-        (0.5, 1.5),
-        (1.5, 1.5),
-        (1.5, 0.5),
-        (2, 0),
+    assert get_line_points_from_edge_to_edge((2, 0), (0, 2), 3, 3) in [
+        [
+            (0, 2),
+            (0.5, 1.5),
+            (1.5, 1.5),
+            (1.5, 0.5),
+            (2, 0),
+        ],
+        [
+            (0, 2),
+            (0.5, 1.5),
+            (0.5, 0.5),
+            (1.5, 0.5),
+            (2, 0),
+        ],
     ]
-    assert get_line_points_from_edge_to_edge((0, 2), (2, 0), 3, 3) == [
-        (0, 2),
-        (0.5, 1.5),
-        (1.5, 1.5),
-        (1.5, 0.5),
-        (2, 0),
+    assert get_line_points_from_edge_to_edge((0, 2), (2, 0), 3, 3) in [
+        [
+            (0, 2),
+            (0.5, 1.5),
+            (1.5, 1.5),
+            (1.5, 0.5),
+            (2, 0),
+        ],
+        [
+            (0, 2),
+            (0.5, 1.5),
+            (0.5, 0.5),
+            (1.5, 0.5),
+            (2, 0),
+        ],
     ]
 
     # rechts mitte und links mitte

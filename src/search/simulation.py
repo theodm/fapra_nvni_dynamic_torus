@@ -206,12 +206,12 @@ def simulate(
 def plot_single_result(result_obj):
     # Den Graphen zeichnen um zu sehen,
     # welche Kanten sich gebildet haben.
-    # draw_torus_2d(
-    #     result_obj["graph"],
-    #     result_obj["num_distinct_information"],
-    #     result_obj["width"],
-    #     result_obj["height"]
-    # )
+    draw_torus_2d(
+        result_obj["graph"],
+        result_obj["num_distinct_information"],
+        result_obj["width"],
+        result_obj["height"]
+    )
 
     # Die Anzahl der gefundenen Knoten über die Schritte hinweg
     # in einem Diagramm darstellen. (plotly, line chart)
