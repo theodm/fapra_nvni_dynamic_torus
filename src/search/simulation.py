@@ -94,20 +94,8 @@ def simulate(
     # damit können wir später ein hübesches Diagramm erstellen
     step_to_number_of_found_nodes = {}
 
-    # Nun die gleiche Idee für jeden Random Walker
-    # mapping von dem Schritt der Simulation
-    # zu der Anzahl an Knoten, die der Random Walker gefunden hat. (nur der erste Fund zählt)
-    rw_to_step_to_number_of_found_nodes = {
-        rw.name: {} for rw in random_walkers
-    }
-
     # Bereits gefundene Knoten
     found_nodes = []
-
-    # Map welcher Random Walker welche Knoten gefunden hat
-    rw_to_found_nodes = {
-        rw.name: [] for rw in random_walkers
-    }
 
     # Führe die Simulation durch und
     # starten mit dem ersten Simulationsschritt (hier wird nicht mit 0 begonnen)
@@ -155,15 +143,8 @@ def simulate(
             ):
                 found_nodes.append(rw.current_node())
 
-                # Problem: Die Random Walker können in einem Schritt auf die gleiche Information
-                # stoßen. Das wird aktuell dem ersten Random Walker in der Liste zugeschrieben.
-                rw_to_found_nodes[rw.name].append(rw.current_node())
-
                 logger.info(f"[{step}] RandomWalker {rw.name} found the searched information at {rw.current_node()} [{len(found_nodes)}/{searched_information_count}]")
             
-            # Speicehr für jeden Random Walker die Anzahl der gefundenen Knoten nach jedem Schritt (aber beachte Problem)
-            rw_to_step_to_number_of_found_nodes[rw.name][step] = len(rw_to_found_nodes[rw.name])
-
         # Speichere die Anzahl der gefundenen Knoten nach jedem Schritt
         step_to_number_of_found_nodes[step] = len(found_nodes)
 
@@ -191,7 +172,6 @@ def simulate(
         "num_distinct_information": num_distinct_information,
 
         "step_to_number_of_found_nodes": step_to_number_of_found_nodes,
-        "rw_to_step_to_number_of_found_nodes": rw_to_step_to_number_of_found_nodes,
 
         # Ist die Simulation zu Ende, weil alle gesuchten Informationen gefunden wurden 
         # oder weil die maximale Anzahl an Schritten erreicht wurde?
@@ -242,16 +222,6 @@ def plot_single_result(result_obj):
             name="Anzahl der gefundenen Knoten"
         )
     )
-
-    for rw in result_obj["rw_to_step_to_number_of_found_nodes"].keys():
-        fig.add_trace(
-            go.Scatter(
-                x=list(result_obj["rw_to_step_to_number_of_found_nodes"][rw].keys()),
-                y=list(result_obj["rw_to_step_to_number_of_found_nodes"][rw].values()),
-                mode="lines+markers",
-                name=f"Anzahl der gefundenen Knoten ({rw})"
-            )
-        )
 
     fig.update_layout(
         title="Anzahl der gefundenen Knoten über die Schritte hinweg",
