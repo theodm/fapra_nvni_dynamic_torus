@@ -4,8 +4,9 @@ import networkx
 import random
 from loguru import logger
 from src.plot.draw_torus import draw_torus_2d
+from src.search.strategy.only_random_walker import OnlyRandomWalker, OnlyRandomWalkerStrategyParams
 from src.search.strategy.random_walker_1 import RandomWalker1, RandomWalker1StrategyParams
-from typing import Deque, Literal
+from typing import Deque, Literal, Union
 
 from src.torus_creation.random_grid import create_random_2d_grid_network
 import plotly.graph_objects as go
@@ -18,13 +19,14 @@ graph_strategy_mapping = {
     "random": create_random_2d_grid_network
 }
 
-RandomWalkerStrategy = Literal["random_walker_1"]
+RandomWalkerStrategy = Literal["only_random_walker", "random_walker_1"]
 # define Random Walker strategy mapping
 random_walker_strategy_mapping = {
+    "only_random_walker": OnlyRandomWalker,
     "random_walker_1": RandomWalker1
 }
 
-RandomWalkerStrategyParams = RandomWalker1StrategyParams
+RandomWalkerStrategyParams = Union[RandomWalker1StrategyParams, OnlyRandomWalkerStrategyParams]
 
 
 def count_searched_information_in_graph(g: networkx.Graph, searched_information: int):
@@ -57,6 +59,17 @@ def simulate(
     searched_information: int,
     max_steps: int,
 ):
+    logger.info("Started simulation with the following parameters:")
+    logger.info(f"graph_strategy: {graph_strategy}")
+    logger.info(f"grid_width: {grid_width}")
+    logger.info(f"grid_height: {grid_height}")
+    logger.info(f"num_distinct_information: {num_distinct_information}")
+    logger.info(f"random_walker_strategy: {random_walker_strategy}")
+    logger.info(f"random_walker_strategy_params: {random_walker_strategy_params}")
+    logger.info(f"num_random_walker: {num_random_walker}")
+    logger.info(f"searched_information: {searched_information}")
+    logger.info(f"max_steps: {max_steps}")
+    
     # Die jeweiligen Funktionen zum Erstellen des Graphen und der Random Walker,
     # später müssen wir sie nurnoch nutzen.
     fn_graph_strategy = graph_strategy_mapping[graph_strategy]
@@ -120,7 +133,7 @@ def simulate(
             # Wenn nach der Dublettenprüfung tatsächlich noch Kanten übrig sind,
             # dann loggen wir das zum Debuggen.
             if len(edges_to_add_rw) > 0:
-                logger.info(
+                logger.trace(
                     f"[{step}]] {rw.name} added {edges_to_add_rw} to the graph"
                 )
 
@@ -143,7 +156,7 @@ def simulate(
             ):
                 found_nodes.append(rw.current_node())
 
-                logger.info(f"[{step}] RandomWalker {rw.name} found the searched information at {rw.current_node()} [{len(found_nodes)}/{searched_information_count}]")
+                logger.trace(f"[{step}] RandomWalker {rw.name} found the searched information at {rw.current_node()} [{len(found_nodes)}/{searched_information_count}]")
             
         # Speichere die Anzahl der gefundenen Knoten nach jedem Schritt
         step_to_number_of_found_nodes[step] = len(found_nodes)
