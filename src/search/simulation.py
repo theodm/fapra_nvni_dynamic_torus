@@ -1,32 +1,51 @@
-
 from dataclasses import dataclass
 import networkx
 import random
 from loguru import logger
 from src.plot.draw_torus import draw_torus_2d
-from src.search.strategy.only_random_walker import OnlyRandomWalker, OnlyRandomWalkerStrategyParams
-from src.search.strategy.random_walker_1 import RandomWalker1, RandomWalker1StrategyParams
+from src.plot.plot_information_distribution import plot_information_distribution
+from src.search.strategy.only_random_walker import (
+    OnlyRandomWalker,
+    OnlyRandomWalkerStrategyParams,
+)
+from src.search.strategy.random_walker_1 import (
+    RandomWalker1,
+    RandomWalker1StrategyParams,
+)
 from typing import Deque, Literal, Union
 
-from src.torus_creation.random_grid import create_random_2d_grid_network
+from src.torus_creation.random_grid import (
+    create_random_2d_grid_network,
+    create_random_2d_grid_network_normal, RandomStrategyParams, RandomNormalStrategyParams,
+    create_random_2d_grid_network_normal_with_params, create_random_2d_grid_network_with_params,
+)
 import plotly.graph_objects as go
 
-#define graph types (random) for typings
-GraphStrategy = Literal["random"]
+# define graph types (random) for typings
+GraphStrategy = Literal["random"] | Literal["random_normal"]
 
 # define Graph strategy mapping
 graph_strategy_mapping = {
-    "random": create_random_2d_grid_network
+    "random": create_random_2d_grid_network_with_params,
+    "random_normal": create_random_2d_grid_network_normal_with_params
 }
+
+GraphStrategyParams = Union[
+    RandomStrategyParams,
+    RandomNormalStrategyParams
+]
 
 RandomWalkerStrategy = Literal["only_random_walker", "random_walker_1"]
 # define Random Walker strategy mapping
 random_walker_strategy_mapping = {
     "only_random_walker": OnlyRandomWalker,
-    "random_walker_1": RandomWalker1
+    "random_walker_1": RandomWalker1,
 }
 
-RandomWalkerStrategyParams = Union[RandomWalker1StrategyParams, OnlyRandomWalkerStrategyParams]
+RandomWalkerStrategyParams = Union[
+    RandomWalker1StrategyParams,
+    OnlyRandomWalkerStrategyParams
+]
 
 
 def count_searched_information_in_graph(g: networkx.Graph, searched_information: int):
@@ -38,24 +57,22 @@ def count_searched_information_in_graph(g: networkx.Graph, searched_information:
 
     return count
 
+
 def simulate(
-    # Grundsätzliche Strategie um den Graphen / Torus 
+    # Grundsätzliche Strategie um den Graphen / Torus
     # zu erstellen (wie werden die Informationen darauf verteilt)
     graph_strategy: GraphStrategy,
+    graph_stratey_params: GraphStrategyParams,
 
     # Größe des Graphen / Torus
     grid_width: int,
     grid_height: int,
-
-    # Anzahl der unterschiedlichen Informationen 
+    # Anzahl der unterschiedlichen Informationen
     # die auf dem Graphen / Torus verteilt werden
     num_distinct_information: int,
-    
     random_walker_strategy: RandomWalkerStrategy,
     random_walker_strategy_params: RandomWalkerStrategyParams,
-
     num_random_walker: int,
-    
     searched_information: int,
     max_steps: int,
 ):
@@ -69,7 +86,7 @@ def simulate(
     logger.info(f"num_random_walker: {num_random_walker}")
     logger.info(f"searched_information: {searched_information}")
     logger.info(f"max_steps: {max_steps}")
-    
+
     # Die jeweiligen Funktionen zum Erstellen des Graphen und der Random Walker,
     # später müssen wir sie nurnoch nutzen.
     fn_graph_strategy = graph_strategy_mapping[graph_strategy]
@@ -77,32 +94,29 @@ def simulate(
 
     if not fn_random_walker_strategy:
         raise Exception("invalid random walker strategy: " + random_walker_strategy)
-    
+
     if not fn_graph_strategy:
         raise Exception("invalid graph strategy: " + graph_strategy)
 
-    g = fn_graph_strategy(
-        grid_width, grid_height, num_distinct_information
-    )
+    g = fn_graph_strategy(grid_width, grid_height, num_distinct_information, graph_stratey_params)
 
     # Wir wollen zunächst herausfinden, wieviele der gesuchten Informationen
     # es im Netzwerk überhaupt gibt. Denn dann brechen wir den Lauf vorzeitig
     # ab, wenn alle gefunden wurden.
-    searched_information_count = count_searched_information_in_graph(g, searched_information)
+    searched_information_count = count_searched_information_in_graph(
+        g, searched_information
+    )
 
-    # Erstelle die Random Walker    
+    # Erstelle die Random Walker
     random_walkers = []
     for i in range(num_random_walker):
         random_walkers.append(
             fn_random_walker_strategy.withParams(
-                f"RW{i}",
-                g,
-                searched_information,
-                random_walker_strategy_params
+                f"RW{i}", g, searched_information, random_walker_strategy_params
             )
         )
 
-    # Mapping von dem Schritt der Simulation 
+    # Mapping von dem Schritt der Simulation
     # zu der bis zu diesem Zeitpunkt gefundenen Anzahl an Knoten
     # damit können wir später ein hübesches Diagramm erstellen
     step_to_number_of_found_nodes = {}
@@ -123,7 +137,7 @@ def simulate(
 
         for rw in random_walkers:
             edges_to_add_rw = rw.walk()
-            
+
             # Bestehende Kanten nehmen wir nicht an und
             # ignorieren entsprechende Aufforderungen zum hinzufügen.
             for edge in edges_to_add_rw:
@@ -156,19 +170,21 @@ def simulate(
             ):
                 found_nodes.append(rw.current_node())
 
-                logger.trace(f"[{step}] RandomWalker {rw.name} found the searched information at {rw.current_node()} [{len(found_nodes)}/{searched_information_count}]")
-            
+                logger.trace(
+                    f"[{step}] RandomWalker {rw.name} found the searched information at {rw.current_node()} [{len(found_nodes)}/{searched_information_count}]"
+                )
+
         # Speichere die Anzahl der gefundenen Knoten nach jedem Schritt
         step_to_number_of_found_nodes[step] = len(found_nodes)
 
         # Wir brechen ab, wenn alle gesuchten Informationen des Graphen gefunden wurden
         if len(found_nodes) == searched_information_count:
             break
-            
+
         # Wir brechen ab, wenn wir die maximale Anzahl an Schritten erreicht haben. :-(
         if step >= max_steps:
             break
-            
+
         step += 1
 
     # An dieser Stelle soll das Ergebnis der Simulation
@@ -176,41 +192,41 @@ def simulate(
     # um die Ergebnisse einfacher auswerten zu können. (Wir können dann den Generierungsschritt und den Analyseschritt trennen)
     # Der Generierungsschritt könnte beispielsweise sehr lange dauern und wir wollen die Ergebnisse nicht verlieren.
 
-    # Bisher geben wir die Ergebnisse einfach nur zurück.    
+    # Bisher geben wir die Ergebnisse einfach nur zurück.
 
-    return { 
+    return {
         # Die Parameter der Simulation
         "width": grid_width,
         "height": grid_height,
         "num_distinct_information": num_distinct_information,
-
         "step_to_number_of_found_nodes": step_to_number_of_found_nodes,
-
-        # Ist die Simulation zu Ende, weil alle gesuchten Informationen gefunden wurden 
+        # Ist die Simulation zu Ende, weil alle gesuchten Informationen gefunden wurden
         # oder weil die maximale Anzahl an Schritten erreicht wurde?
         "break_type": "max_steps" if step >= max_steps else "all_found",
-
         # Wieviele Schritte wurden wirklich durchgeführt
         "num_steps": step,
-
         # Wieviele Knoten wurden gefunden?
         "num_found_nodes": len(found_nodes),
-
         # Wieviele Knoten wurden gesucht?
         "num_searched_nodes": searched_information_count,
-
         # Wie sieht der Graph nun aus?
-        "graph": g
+        "graph": g,
     }
 
+
 def plot_single_result(result_obj):
+    plot_information_distribution(
+        result_obj["graph"],
+        result_obj["num_distinct_information"]
+    )
+
     # Den Graphen zeichnen um zu sehen,
     # welche Kanten sich gebildet haben.
     draw_torus_2d(
         result_obj["graph"],
         result_obj["num_distinct_information"],
         result_obj["width"],
-        result_obj["height"]
+        result_obj["height"],
     )
 
     # Die Anzahl der gefundenen Knoten über die Schritte hinweg
@@ -221,9 +237,10 @@ def plot_single_result(result_obj):
     fig.add_trace(
         go.Scatter(
             x=list(result_obj["step_to_number_of_found_nodes"].keys()),
-            y=[result_obj["num_searched_nodes"]] * len(result_obj["step_to_number_of_found_nodes"]),
+            y=[result_obj["num_searched_nodes"]]
+            * len(result_obj["step_to_number_of_found_nodes"]),
             mode="lines",
-            name="Anzahl der gesuchten Knoten"
+            name="Anzahl der gesuchten Knoten",
         )
     )
 
@@ -232,7 +249,7 @@ def plot_single_result(result_obj):
             x=list(result_obj["step_to_number_of_found_nodes"].keys()),
             y=list(result_obj["step_to_number_of_found_nodes"].values()),
             mode="lines+markers",
-            name="Anzahl der gefundenen Knoten"
+            name="Anzahl der gefundenen Knoten",
         )
     )
 
@@ -241,6 +258,5 @@ def plot_single_result(result_obj):
         xaxis_title="Schritt",
         yaxis_title="Anzahl der gefundenen Knoten",
     )
-
 
     fig.show()

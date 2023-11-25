@@ -6,7 +6,7 @@ from src.search.strategy.random_walker_1 import RandomWalker1StrategyParams
 # simulate 20 times and show averages
 resultsB = []
 for i in range(1500):
-    res = simulate(
+    res = simulate(#
         graph_strategy="random",
         grid_width=40,
         grid_height=40,

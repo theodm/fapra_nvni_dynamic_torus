@@ -13,6 +13,8 @@ black = "*"
 scikit-image = "*"
 jupyter = "*"
 loguru = "*"
+win32-setctime = "*"
+scipy = "*"
 
 [dev-packages]
 
