@@ -11,8 +11,10 @@ import pandas as pd
 # Logging deaktivieren, denn das macht hier keinen Sinn und bläht die Konsole nur auf
 # stattdessen einfach in eine Log-Datei
 import loguru
+
 loguru.logger.remove()
 loguru.logger.add("strategy_comparator.log", level="ERROR")
+
 
 def print_info_for_attribute(objs, attribute_name):
     print("attribute_name: ", attribute_name)
@@ -47,43 +49,56 @@ def print_for_result(name, runs):
         **min_max_avg_std_dev_for_runs(runs, "num_steps"),
         **min_max_avg_std_dev_for_runs(runs, "num_found_nodes"),
         **min_max_avg_std_dev_for_runs(runs, "num_searched_nodes"),
-        "num_times_out_of_steps": sum([(0 if r["break_type"] == "all_found" else 1) for r in runs]),
-        "num_times": len(runs)
+        "num_times_out_of_steps": sum(
+            [(0 if r["break_type"] == "all_found" else 1) for r in runs]
+        ),
+        "num_times": len(runs),
     }
 
 
 strategies_to_test = [
-    ('Only Random Walker', "only_random_walker", OnlyRandomWalkerStrategyParams()),
-    ('Random Walker 1', "random_walker_1", RandomWalker1StrategyParams(
-        0.82,
-        0.01,
-        1000
-    )),
-    ('Random Walker 2 (OnlySearchedInformation)', "random_walker_2", RandomWalker2StrategyParams(
-        0.82,
-        100,
-        "OnlySearchedInformation"
-    )),
-     ('Random Walker 2 (EveryXStepsLowestDistanceToSearchedInformation)', "random_walker_2", RandomWalker2StrategyParams(
-         0.82,
-         100,
-         "EveryXStepsLowestDistanceToSearchedInformation"
-     )),
-      ('Random Walker 2 (EveryXStepsHighestDistanceToSearchedInformation)', "random_walker_2", RandomWalker2StrategyParams(
-          0.82,
-          100,
-          "EveryXStepsHighestDistanceToSearchedInformation"
-      )),
-      ('Random Walker 2 (EveryXStepsToNearestToCurrentInformation)', "random_walker_2", RandomWalker2StrategyParams(
-          0.82,
-          100,
-          "EveryXStepsToNearestToCurrentInformation"
-      )),
-      ('Random Walker 2 (EveryXStepsRandomConnection)', "random_walker_2", RandomWalker2StrategyParams(
-          0.82,
-          100,
-          "EveryXStepsRandomConnection"
-      )),
+    ("Only Random Walker", "only_random_walker", OnlyRandomWalkerStrategyParams()),
+    (
+        "Only Random Walker (with Memory)",
+        "only_random_walker",
+        OnlyRandomWalkerStrategyParams(100),
+    ),
+    (
+        "Random Walker 1",
+        "random_walker_1",
+        RandomWalker1StrategyParams(0.82, 0.01, 100),
+    ),
+    (
+        "Random Walker 2 (OnlySearchedInformation)",
+        "random_walker_2",
+        RandomWalker2StrategyParams(0.82, 100, "OnlySearchedInformation"),
+    ),
+    (
+        "Random Walker 2 (EveryXStepsLowestDistanceToSearchedInformation)",
+        "random_walker_2",
+        RandomWalker2StrategyParams(
+            0.82, 100, "EveryXStepsLowestDistanceToSearchedInformation"
+        ),
+    ),
+    (
+        "Random Walker 2 (EveryXStepsHighestDistanceToSearchedInformation)",
+        "random_walker_2",
+        RandomWalker2StrategyParams(
+            0.82, 100, "EveryXStepsHighestDistanceToSearchedInformation"
+        ),
+    ),
+    (
+        "Random Walker 2 (EveryXStepsToNearestToCurrentInformation)",
+        "random_walker_2",
+        RandomWalker2StrategyParams(
+            0.82, 100, "EveryXStepsToNearestToCurrentInformation"
+        ),
+    ),
+    (
+        "Random Walker 2 (EveryXStepsRandomConnection)",
+        "random_walker_2",
+        RandomWalker2StrategyParams(0.82, 100, "EveryXStepsRandomConnection"),
+    ),
 ]
 
 results_for_strategies = []
@@ -120,8 +135,5 @@ with open("strategy_comparator.html", "w") as f:
     f.write(html)
 
 import webbrowser
+
 webbrowser.open("strategy_comparator.html")
-
-
-
-
