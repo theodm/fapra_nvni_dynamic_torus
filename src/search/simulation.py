@@ -14,6 +14,7 @@ from src.search.strategy.random_walker_1 import (
 )
 from typing import Deque, Literal, Union
 
+from src.search.strategy.random_walker_2 import RandomWalker2, RandomWalker2StrategyParams
 from src.torus_creation.random_grid import (
     create_random_2d_grid_network,
     create_random_2d_grid_network_normal, RandomStrategyParams, RandomNormalStrategyParams,
@@ -35,14 +36,16 @@ GraphStrategyParams = Union[
     RandomNormalStrategyParams
 ]
 
-RandomWalkerStrategy = Literal["only_random_walker", "random_walker_1"]
+RandomWalkerStrategy = Literal["only_random_walker", "random_walker_1", "random_walker_2"]
 # define Random Walker strategy mapping
 random_walker_strategy_mapping = {
     "only_random_walker": OnlyRandomWalker,
     "random_walker_1": RandomWalker1,
+    "random_walker_2": RandomWalker2,
 }
 
 RandomWalkerStrategyParams = Union[
+    RandomWalker2StrategyParams,
     RandomWalker1StrategyParams,
     OnlyRandomWalkerStrategyParams
 ]
