@@ -7,10 +7,12 @@ from src.torus_creation.shared.torus_utils import map_2d_point_to_3d_torus
 import scipy.stats as stats
 from loguru import logger
 
+
 @dataclass
 class RandomStrategyParams:
     # Keine Parameter
     pass
+
 
 @dataclass
 class RandomNormalStrategyParams:
@@ -26,11 +28,12 @@ class RandomNormalStrategyParams:
 
     pass
 
+
 def create_random_2d_grid_network_normal_with_params(
     width: int,
     height: int,
     num_distinct_information: int,
-        params: RandomNormalStrategyParams,
+    params: RandomNormalStrategyParams,
 ) -> networkx.Graph:
     return create_random_2d_grid_network_normal(
         width=width,
@@ -74,9 +77,7 @@ def create_random_2d_grid_network_normal(
 
     logger.debug("mu: {mu}, sigma: {sigma}", mu=mu, sigma=sigma)
 
-    X = stats.truncnorm(
-        (lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma
-    )
+    X = stats.truncnorm((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
 
     # Wir erstellen die Zufallswerte vorab,
     # dann verwenden wir sie
@@ -91,23 +92,23 @@ def create_random_2d_grid_network_normal(
         g.nodes[node]["z_pos"] = t_pos[2]
 
         # Zufällige Information
-        g.nodes[node]["information"] = int(
-            random_information.pop()
-        )
+        g.nodes[node]["information"] = int(random_information.pop())
 
     return g
 
+
 def create_random_2d_grid_network_with_params(
-        width: int,
-        height: int,
-        num_distinct_information: int,
-        params: RandomStrategyParams,
+    width: int,
+    height: int,
+    num_distinct_information: int,
+    params: RandomStrategyParams,
 ) -> networkx.Graph:
     return create_random_2d_grid_network(
         width=width,
         height=height,
         num_distinct_information=num_distinct_information,
     )
+
 
 def create_random_2d_grid_network(
     width: int, height: int, num_distinct_information: int

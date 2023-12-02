@@ -1,4 +1,5 @@
 # %%
+from dataclasses import dataclass
 from typing import Literal
 
 import plotly.graph_objects as go
@@ -83,8 +84,8 @@ def get_line_points_from_edge_to_edge(
         a, b = b, a
 
     # 1. a liegt links oben von b
-    if a[1] < b[1]:        
-        # Wir gehen entweder nach rechts und dann nach unten 
+    if a[1] < b[1]:
+        # Wir gehen entweder nach rechts und dann nach unten
         # oder nach unten und dann nach rechts, zufällig;
         # damit der Graph übersichtlicher wird.
         go_right_bottom = random.choice([True, False])
@@ -118,10 +119,8 @@ def get_line_points_from_edge_to_edge(
                 (b[0], b[1]),
             ]
 
-
     # 2. a liegt links unten von b
     if a[1] > b[1]:
-
         # Wir gehen entweder nach rechts und dann nach oben
         # oder nach oben und dann nach rechts, zufällig;
         # damit der Graph übersichtlicher wird.
@@ -160,89 +159,114 @@ def get_line_points_from_edge_to_edge(
     raise ValueError("This should never happen")
 
 
-def _select_colors(
-    color_mode: Literal["normal", "distance_to_target"],
-    target_information: int | None,
-    num_distinct_information: int,
-    colormap: str,
-):
-    """
-    Gibt die Palette zurück, die für die Knoten verwendet werden sollen. Wird anhand
-    der Parameter color_mode und target_information bestimmt. Die Beschreibung wie color_mode
-    und target_information Einfluss nehmen befindet sich in der Dokumentation zu draw_torus_2d und draw_torus_3d.
-    """
-    if color_mode == "normal":
-        colors = colormap_for_information(num_distinct_information, colormap)
-    elif color_mode == "distance_to_target":
-        if target_information is None:
-            raise ValueError(
-                "target_information must be set if color_mode is 'distance_to_target'"
-            )
-        diff_to_max = abs(target_information - num_distinct_information)
-        diff_to_min = abs(target_information - 0)
-
-        colors = colormap_for_information(max(diff_to_max, diff_to_min) + 1, colormap)
-        colors = colors[::-1]
-    else:
-        raise ValueError(f"Unknown color_mode: {color_mode}")
-
-    return colors
-
-
-def _get_color(
-    g: networkx.Graph,
-    colors: list[str],
-    color_mode: Literal["normal", "distance_to_target"],
-    target_information: int | None,
-    node: tuple[int, int],
-):
-    """
-    Gibt die Farbe zurück, die für den Knoten verwendet werden soll. Wird anhand
-    der Parameter color_mode und target_information bestimmt. Muss in Kombination
-    mit _select_colors verwendet werden.
-    """
-    if color_mode == "normal":
-        return colors[g.nodes[node]["information"]]
-    elif color_mode == "distance_to_target":
-        return colors[abs(g.nodes[node]["information"] - target_information)]
-    else:
-        raise ValueError(f"Unknown color_mode: {color_mode}")
-
-
 def _get_text_for_node(g, node):
     """
     Gibt den Text zurück, der beim Hovern über einen Knoten angezeigt werden soll.
     """
-    return f"{g.nodes[node]['information']} ({node[0]},{node[1]})"
+    return f"{g.nodes[node]['information']} ({node[0]},{node[1]}) [v: {g.nodes[node]['visited']}]"
+
+
+class ColorModeInformation:
+    """
+    Färbt die Knoten entsprechend ihrer Information ein.
+    """
+
+    num_distinct_information: int
+
+    color_map: list[str]
+
+    def __init__(self, num_distinct_information: int, color_map: str = "inferno"):
+        self.num_distinct_information = num_distinct_information
+        self.color_map = colormap_for_information(num_distinct_information, color_map)
+
+    def get_color(self, node: tuple[int, int], graph: networkx.Graph):
+        return self.color_map[graph.nodes[node]["information"]]
+
+
+class ColorModeInformationDistanceToTarget:
+    """
+    Färbt die Knoten entsprechend ihrer Distanz zur target_information ein. Dadurch
+    soll die gesuchte Information besonders deutlich werden.
+    """
+
+    target_information: int
+
+    color_map: list[str]
+
+    def __init__(self, num_distinct_information: int, target_information: int):
+        self.target_information = target_information
+
+        diff_to_max = abs(self.target_information - num_distinct_information)
+        diff_to_min = abs(self.target_information - 0)
+
+        self.color_map = colormap_for_information(
+            max(diff_to_max, diff_to_min) + 1, "inferno"
+        )
+
+    def get_color(self, node: tuple[int, int], graph: networkx.Graph):
+        return self.color_map[
+            abs(graph.nodes[node]["information"] - self.target_information)
+        ]
+
+
+class ColorModeNumberOfTimesVisited:
+    """
+    Färbt die Knoten entsprechend der Anzahl der Besuche durch alle Random Walker ein. Dadurch
+    sollen Hotspots sichtbar gemacht werden.
+    """
+
+    color_map: list[str]
+
+    def __init__(self, graph: networkx.Graph):
+        max_number_of_times_visited = max(
+            [graph.nodes[node]["visited"] for node in graph.nodes()]
+        )
+
+        self.max_number_of_times_visited = max_number_of_times_visited
+
+        self.color_map = colormap_for_information(
+            max_number_of_times_visited + 1, "inferno"
+        )
+
+    def get_color(self, node: tuple[int, int], graph: networkx.Graph):
+        return self.color_map[graph.nodes[node]["visited"]]
+
+
+class SizeModeNone:
+    def get_size(self, node: tuple[int, int], graph: networkx.Graph):
+        return 4
+
+
+class SizeModeHighlightSearchedInformation:
+    searched_information: int
+
+    def __init__(self, searched_information: int):
+        self.searched_information = searched_information
+
+    def get_size(self, node: tuple[int, int], graph: networkx.Graph):
+        return 6 if graph.nodes[node]["information"] == self.searched_information else 4
 
 
 def draw_torus_2d(
     g: networkx.Graph,
-    num_distinct_information: int,
     width: int,
     height: int,
-    colormap: str = "inferno",
-    color_mode: Literal["normal", "distance_to_target"] = "normal",
-    target_information: int | None = None,
+    color_mode: ColorModeInformation
+    | ColorModeInformationDistanceToTarget
+    | ColorModeNumberOfTimesVisited,
+    size_mode: SizeModeNone | SizeModeHighlightSearchedInformation = SizeModeNone(),
 ):
     """
     Gibt den Graphen mittels Plotly in 2D als Gitter aus.
 
-    Die Knoten werden entsprechend ihrer Information eingefärbt. Falls der color_mode auf
-    'distance_to_target' gesetzt ist, muss target_information gesetzt sein. Dann werden die Knoten
-    entsprechend ihrer Distanz zur target_information eingefärbt. Ansonsten im 'normal' Modus
-    entsprechend ihrer Information (von 0 bis num_distinct_information - 1).
+    Die Knoten werden entsprechend des übergebenen ColorMode eingefärbt.
 
     Args:
         g (networkx.Graph): Der Graph, der gezeichnet werden soll.
-        num_distinct_information (int): Die Anzahl der unterschiedlichen Informationen.
-        colormap (str, optional): Die Farbpalette aus matplotlib, die verwendet werden soll. Defaults to "inferno".
-        color_mode (Literal["normal", "distance_to_target"], optional): Der Modus, in dem die Knoten eingefärbt werden sollen. Defaults to "normal".
-        target_information (int | None, optional): Die Information, die als Ziel gesetzt ist. Wird nur verwendet, wenn color_mode auf 'distance_to_target' gesetzt ist. Defaults to None.
+        width (int): Die Breite des Gitters.
+        height (int): Die Höhe des Gitters.
+        color_mode (ColorModeInformation | ColorModeInformationDistanceToTarget | ColorModeNumberOfTimesVisited): Der Modus, in dem die Knoten eingefärbt werden sollen.
     """
-    colors = _select_colors(
-        color_mode, target_information, num_distinct_information, colormap
-    )
 
     x_nodes = [node[0] for node in g.nodes()]
     y_nodes = [node[1] for node in g.nodes()]
@@ -280,11 +304,8 @@ def draw_torus_2d(
         mode="markers",
         marker=dict(
             symbol="circle",
-            size=4,
-            color=[
-                _get_color(g, colors, color_mode, target_information, n)
-                for n in g.nodes()
-            ],
+            size=[size_mode.get_size(n, g) for n in g.nodes()],
+            color=[color_mode.get_color(n, g) for n in g.nodes()],
             line=dict(color="black", width=0.5),
         ),
         text=[_get_text_for_node(g, n) for n in g.nodes()],
@@ -333,30 +354,20 @@ def draw_torus_2d(
 
 def draw_torus_3d(
     g: networkx.Graph,
-    num_distinct_information: int,
-    colormap: str = "inferno",
-    color_mode: Literal["normal", "distance_to_target"] = "normal",
-    target_information: int | None = None,
+    color_mode: ColorModeInformation
+    | ColorModeInformationDistanceToTarget
+    | ColorModeNumberOfTimesVisited,
+    size_mode: SizeModeNone | SizeModeHighlightSearchedInformation = SizeModeNone(),
 ):
     """
     Gibt den Graphen mittels Plotly in 3D aus. Dafür müssen die Knoten die Attribute
     x_pos, y_pos und z_pos haben, welche vorher mit map_2d_point_to_3d_torus berechnet werden können.
-    Die Knoten werden entsprechend ihrer Information eingefärbt. Falls der color_mode auf
-    'distance_to_target' gesetzt ist, muss target_information gesetzt sein. Dann werden die Knoten
-    entsprechend ihrer Distanz zur target_information eingefärbt. Ansonsten im 'normal' Modus
-    entsprechend ihrer Information (von 0 bis num_distinct_information - 1).
+    Die Knoten werden entsprechend des übergebenen ColorMode eingefärbt.
 
     Args:
         g (networkx.Graph): Der Graph, der gezeichnet werden soll.
-        num_distinct_information (int): Die Anzahl der unterschiedlichen Informationen.
-        colormap (str, optional): Die Farbpalette aus matplotlib, die verwendet werden soll. Defaults to "inferno".
-        color_mode (Literal["normal", "distance_to_target"], optional): Der Modus, in dem die Knoten eingefärbt werden sollen. Defaults to "normal".
-        target_information (int | None, optional): Die Information, die als Ziel gesetzt ist. Wird nur verwendet, wenn color_mode auf 'distance_to_target' gesetzt ist. Defaults to None.
+        color_mode (ColorModeInformation | ColorModeInformationDistanceToTarget | ColorModeNumberOfTimesVisited): Der Modus, in dem die Knoten eingefärbt werden sollen.
     """
-
-    colors = _select_colors(
-        color_mode, target_information, num_distinct_information, colormap
-    )
 
     x_nodes = [g.nodes[node]["x_pos"] for node in g.nodes()]
     y_nodes = [g.nodes[node]["y_pos"] for node in g.nodes()]
@@ -393,11 +404,8 @@ def draw_torus_3d(
         mode="markers",
         marker=dict(
             symbol="circle",
-            size=4,
-            color=[
-                _get_color(g, colors, color_mode, target_information, n)
-                for n in g.nodes()
-            ],
+            size=[size_mode.get_size(n, g) for n in g.nodes()],
+            color=[color_mode.get_color(n, g) for n in g.nodes()],
             line=dict(color="black", width=0.5),
         ),
         text=[_get_text_for_node(g, n) for n in g.nodes()],
