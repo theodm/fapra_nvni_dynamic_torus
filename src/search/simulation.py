@@ -62,6 +62,46 @@ RandomWalkerStrategyParams = Union[
 ]
 
 
+RandomWalkerStartPointStrategy = Literal["ZeroZero", "RandomNode","SingleRandomNode"]
+
+class ZeroZeroStartPointStrategy:
+    def __init__(self):
+        pass
+
+    def get_start_point(self, g: networkx.Graph):
+        return (0, 0)
+
+class RandomNodeStartPointStrategy:
+    def __init__(self):
+        pass
+
+    def get_start_point(self, g: networkx.Graph):
+        return random.choice(list(g.nodes()))
+
+class SingleRandomNodeStartPointStrategy:
+    single_start_point = None
+
+    def __init__(self):
+        pass
+
+    def get_start_point(self, g: networkx.Graph):
+        if not self.single_start_point:
+            self.single_start_point = random.choice(list(g.nodes()))
+        else:
+            return self.single_start_point
+
+def create_random_walker_start_point_strategy(
+    random_walker_start_point_strategy: RandomWalkerStartPointStrategy
+):
+    if random_walker_start_point_strategy == "ZeroZero":
+        return ZeroZeroStartPointStrategy()
+    elif random_walker_start_point_strategy == "RandomNode":
+        return RandomNodeStartPointStrategy()
+    elif random_walker_start_point_strategy == "SingleRandomNode":
+        return SingleRandomNodeStartPointStrategy()
+    else:
+        raise Exception("invalid random walker start point strategy: " + random_walker_start_point_strategy)
+
 def count_searched_information_in_graph(g: networkx.Graph, searched_information: int):
     count = 0
 
@@ -88,6 +128,7 @@ def simulate(
     num_random_walker: int,
     searched_information: int,
     max_steps: int,
+    random_walker_start_point_strategy: RandomWalkerStartPointStrategy,
 ):
     logger.info("Started simulation with the following parameters:")
     logger.info(f"graph_strategy: {graph_strategy}")
@@ -125,9 +166,14 @@ def simulate(
     # Erstelle die Random Walker
     random_walkers = []
     for i in range(num_random_walker):
+        # Startpunkt kann je nach Startpunkt-Strategie variieren
+        random_walker_start_point_strategy_fn = create_random_walker_start_point_strategy(random_walker_start_point_strategy)
+        
+        start_point = random_walker_start_point_strategy_fn.get_start_point(g)
+        
         random_walkers.append(
             fn_random_walker_strategy.withParams(
-                f"RW{i}", g, searched_information, random_walker_strategy_params
+                f"RW{i}", g, searched_information, start_point, random_walker_strategy_params
             )
         )
 
@@ -230,6 +276,13 @@ def simulate(
         "num_distinct_information": num_distinct_information,
         "searched_information": searched_information,
         "step_to_number_of_found_nodes": step_to_number_of_found_nodes,
+
+        "start_point_strategy": random_walker_start_point_strategy,
+
+        "common_start_point": rw[0].start_point if random_walker_start_point_strategy == "ZeroZero" or random_walker_start_point_strategy == "SingleRandomNode" else None,
+
+        "rw_startpoints": [rw.start_point for rw in random_walkers],
+
         # Ist die Simulation zu Ende, weil alle gesuchten Informationen gefunden wurden
         # oder weil die maximale Anzahl an Schritten erreicht wurde?
         "break_type": "max_steps" if step >= max_steps else "all_found",

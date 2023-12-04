@@ -28,6 +28,8 @@ class RandomWalker2:
     name: str
     g: networkx.Graph
     searched_information: int
+    start_point: tuple
+
     probability_to_create_edge: float
 
     last_nodes: Deque[tuple]
@@ -40,12 +42,14 @@ class RandomWalker2:
         name: str,
         g: networkx.Graph,
         searched_information: int,
+        start_point: tuple,
         random_walker_params: RandomWalker2StrategyParams,
     ):
         return cls(
             name,
             g,
             searched_information,
+            start_point,
             random_walker_params.random_probability,
             random_walker_params.length_of_memory,
             random_walker_params.create_edge_strategy,
@@ -57,6 +61,7 @@ class RandomWalker2:
         name: str,
         g: networkx,
         searched_information: int,
+        start_point: tuple,
         random_probability: float,
         length_of_memory: int,
         create_edge_strategy:  Literal["OnlySearchedInformation"] | Literal["EveryXStepsLowestDistanceToSearchedInformation"] | Literal["EveryXStepsHighestDistanceToSearchedInformation"] | Literal["EveryXStepsToNearestToCurrentInformation"] | Literal["EveryXStepsRandomConnection"],
@@ -65,15 +70,17 @@ class RandomWalker2:
         self.name = name
         self.g = g
         self.searched_information = searched_information
+        self.start_point = start_point
+
         self.random_probability = random_probability
         self.length_of_memory = length_of_memory
         self.create_edge_strategy = create_edge_strategy
         self.probability_to_create_edge = probability_to_create_edge
-        
+
         self.last_nodes = deque([], length_of_memory)
 
         # Zufälliger Startknoten
-        self.last_nodes.appendleft(random.choice(list(self.g.nodes())))
+        self.last_nodes.appendleft(start_point)
 
         # logger.info(f"RandomWalker {self.name} started at {self.current_node}")
 

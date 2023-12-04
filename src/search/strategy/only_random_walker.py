@@ -23,6 +23,7 @@ class OnlyRandomWalker:
     name: str
     g: networkx.Graph
     searched_information: int
+    start_point: tuple
 
     length_of_memory: int
 
@@ -34,22 +35,24 @@ class OnlyRandomWalker:
         name: str,
         g: networkx.Graph,
         searched_information: int,
+        start_point: tuple,
         random_walker_params: OnlyRandomWalkerStrategyParams,
     ):
-        return cls(name, g, searched_information, random_walker_params.length_of_memory)
+        return cls(name, g, searched_information, start_point, random_walker_params.length_of_memory)
 
     def __init__(
-        self, name: str, g: networkx, searched_information: int, length_of_memory: int
+        self, name: str, g: networkx, searched_information: int,  start_point: tuple, length_of_memory: int
     ):
         self.name = name
         self.g = g
         self.searched_information = searched_information
+        self.start_point = start_point
+
         self.length_of_memory = length_of_memory
 
         self.last_nodes = deque([], length_of_memory)
 
-        # Zufälliger Startknoten
-        self.last_nodes.appendleft(random.choice(list(self.g.nodes())))
+        self.last_nodes.appendleft(start_point)
 
         logger.trace(f"RandomWalker {self.name} started at {self.current_node}")
 

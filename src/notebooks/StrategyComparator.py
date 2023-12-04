@@ -137,6 +137,7 @@ for strategy in strategies_to_test:
             num_random_walker=10,
             searched_information=50,
             max_steps=3000,
+            random_walker_start_point_strategy="RandomNode",
         )
 
         runs.append(res)

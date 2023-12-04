@@ -22,6 +22,7 @@ class RandomWalker1:
     name: str
     g: networkx.Graph
     searched_information: int
+    start_point: tuple
 
     last_nodes: Deque[tuple]
 
@@ -31,12 +32,14 @@ class RandomWalker1:
         name: str,
         g: networkx.Graph,
         searched_information: int,
+        start_point: tuple,
         random_walker_params: RandomWalker1StrategyParams,
     ):
         return cls(
             name,
             g,
             searched_information,
+            start_point,
             random_walker_params.random_probability,
             random_walker_params.random_probability_of_adding_edge,
             random_walker_params.length_of_memory,
@@ -47,6 +50,7 @@ class RandomWalker1:
         name: str,
         g: networkx,
         searched_information: int,
+        start_point: tuple,
         random_probability: float = 0.9,
         random_probability_of_adding_edge: float = 0.005,
         length_of_memory: int = 150,
@@ -54,6 +58,8 @@ class RandomWalker1:
         self.name = name
         self.g = g
         self.searched_information = searched_information
+        self.start_point = start_point
+
         self.random_probability = random_probability
         self.random_probability_of_adding_edge = random_probability_of_adding_edge
         self.length_of_memory = length_of_memory
@@ -61,9 +67,9 @@ class RandomWalker1:
         self.last_nodes = deque([], length_of_memory)
 
         # Zufälliger Startknoten
-        self.last_nodes.appendleft(random.choice(list(self.g.nodes())))
+        self.last_nodes.appendleft(start_point)
 
-        # logger.info(f"RandomWalker {self.name} started at {self.current_node}")
+        logger.info(f"RandomWalker {self.name} started at {self.current_node}")
 
     def current_node(self):
         return self.last_nodes[0]
@@ -94,9 +100,9 @@ class RandomWalker1:
                 ),
             )
 
-            # logger.debug(f"searched information: {self.searched_information}")
-            # logger.debug(f"current node information: {current_node_information}")
-            # logger.debug(f"neighbor informations: {[self.g.nodes[x]['information'] for x in sorted_neighbors]}")
+            logger.debug(f"searched information: {self.searched_information}")
+            logger.debug(f"current node information: {current_node_information}")
+            logger.debug(f"neighbor informations: {[self.g.nodes[x]['information'] for x in sorted_neighbors]}")
 
             # Wähle den ersten Nachbarn aus der Liste
             self.last_nodes.appendleft(sorted_neighbors[0])
