@@ -14,8 +14,6 @@
     "remoteEnv": {
          "PYTHONPATH": "/workspaces/fapra_nvni_dynamic_torus"
     },
-
-	"postCreateCommand": "pipenv install",
     
 	"customizations": {
 		"vscode": {

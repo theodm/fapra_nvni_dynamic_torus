@@ -100,11 +100,6 @@ strategies_to_test = [
         RandomWalker2StrategyParams(0.82, 100, "EveryXStepsRandomConnection"),
     ),
     (
-        "Random Walker 2 (EveryXStepsRandomConnection)",
-        "random_walker_2",
-        RandomWalker2StrategyParams(0.82, 100, "EveryXStepsRandomConnection"),
-    ),
-    (
         "Random Walker 2 (EveryRandomStepsNearestToCurrentInformation)",
         "random_walker_2",
         RandomWalker2StrategyParams(
@@ -148,16 +143,14 @@ for strategy in strategies_to_test:
 
     results_for_strategies.append(print_for_result(strategy[0], runs))
 
-print(results_for_strategies)
-
 # create dataframe
-# df = pd.DataFrame(results_for_strategies)
+df = pd.DataFrame(results_for_strategies)
 
-# # display dataframe as html to file and open in browser
-# # highligh column num_steps_avg
-# html = df.style.highlight_min(subset=["num_steps_avg"]).render()
-# with open("strategy_comparator.html", "w") as f:
-#     f.write(html)
+# display dataframe as html to file and open in browser
+# highligh column num_steps_avg
+html = df.style.highlight_min(subset=["num_steps_avg"]).to_html()
+with open("strategy_comparator.html", "w") as f:
+    f.write(html)
 
 # import webbrowser
 
