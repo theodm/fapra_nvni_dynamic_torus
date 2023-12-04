@@ -12,8 +12,10 @@ from src.search.strategy.shared_rw_utils import get_neigbor_with_nearest_informa
 class RandomWalker2StrategyParams:
     random_probability: float
     length_of_memory: int
-
     create_edge_strategy: Literal["OnlySearchedInformation"] | Literal["EveryXStepsLowestDistanceToSearchedInformation"] | Literal["EveryXStepsHighestDistanceToSearchedInformation"] | Literal["EveryXStepsToNearestToCurrentInformation"] | Literal["EveryXStepsRandomConnection"]
+
+    # Only for EveryRandomStepsNearestToCurrentInformation and EveryRandomStepsLowestDistanceToSearchedInformation
+    probability_to_create_edge: float = 1.0
 
 class RandomWalker2:
     # Wahrscheinlichkeit, dass der Random Walker einen zufälligen Schritt macht
@@ -26,6 +28,7 @@ class RandomWalker2:
     name: str
     g: networkx.Graph
     searched_information: int
+    probability_to_create_edge: float
 
     last_nodes: Deque[tuple]
 
@@ -46,6 +49,7 @@ class RandomWalker2:
             random_walker_params.random_probability,
             random_walker_params.length_of_memory,
             random_walker_params.create_edge_strategy,
+            random_walker_params.probability_to_create_edge
         )
 
     def __init__(
@@ -55,7 +59,8 @@ class RandomWalker2:
         searched_information: int,
         random_probability: float,
         length_of_memory: int,
-        create_edge_strategy: Literal["OnlySearchedInformation"],
+        create_edge_strategy:  Literal["OnlySearchedInformation"] | Literal["EveryXStepsLowestDistanceToSearchedInformation"] | Literal["EveryXStepsHighestDistanceToSearchedInformation"] | Literal["EveryXStepsToNearestToCurrentInformation"] | Literal["EveryXStepsRandomConnection"],
+        probability_to_create_edge: float
     ):
         self.name = name
         self.g = g
@@ -63,7 +68,8 @@ class RandomWalker2:
         self.random_probability = random_probability
         self.length_of_memory = length_of_memory
         self.create_edge_strategy = create_edge_strategy
-
+        self.probability_to_create_edge = probability_to_create_edge
+        
         self.last_nodes = deque([], length_of_memory)
 
         # Zufälliger Startknoten
@@ -95,7 +101,7 @@ class RandomWalker2:
         self.last_nodes.appendleft(next_node)
         self.number_of_steps += 1
 
-        if self.create_edge_strategy == "OnlySearchedInformation":
+        if self.create_edge_strategy == "OnlySearchedInformation":            
             # Wenn wir nun bei der gesuchten Information angekommen sind, dann
             # verbinden wir den aktuellen Knoten mit allen Knoten im Gedächtnis,
             # der auch die gesuchte Information hat. (Falls die Kante bereits existiert,
@@ -114,7 +120,7 @@ class RandomWalker2:
 
                 return edges_to_add
             return []
-        elif self.create_edge_strategy == "EveryXStepsLowestDistanceToSearchedInformation":
+        elif self.create_edge_strategy == "EveryXStepsLowestDistanceToSearchedInformation":            
             X = self.length_of_memory
             if self.number_of_steps > 0 and self.number_of_steps % X == 0:
                 # connect current node with the nearest distance node to searched information in the memory
@@ -124,7 +130,7 @@ class RandomWalker2:
                 return [(self.current_node(), _last_nodes_without_current_sorted_by_dist[0])]
 
             return []
-        elif self.create_edge_strategy == "EveryXStepsHighestDistanceToSearchedInformation":
+        elif self.create_edge_strategy == "EveryXStepsHighestDistanceToSearchedInformation":            
             X = self.length_of_memory
             if self.number_of_steps > 0 and self.number_of_steps % X == 0:
                 # connect current node with the highest distance node to searched information in the memory
@@ -134,7 +140,7 @@ class RandomWalker2:
                 return [(self.current_node(), _last_nodes_without_current_sorted_by_dist[-1])]
 
             return []
-        elif self.create_edge_strategy == "EveryXStepsToNearestToCurrentInformation":
+        elif self.create_edge_strategy == "EveryXStepsToNearestToCurrentInformation":            
             X = self.length_of_memory
             if self.number_of_steps > 0 and self.number_of_steps % X == 0:
                 # connect current node with the nearest information node to current node
@@ -144,7 +150,7 @@ class RandomWalker2:
                 return [(self.current_node(), _last_nodes_without_current_sorted_by_dist[0])]
 
             return []
-        elif self.create_edge_strategy == "EveryXStepsRandomConnection":
+        elif self.create_edge_strategy == "EveryXStepsRandomConnection":            
             X = self.length_of_memory
             if self.number_of_steps > 0 and self.number_of_steps % X == 0:
                 # connect current node with a random node in the memory
@@ -153,6 +159,27 @@ class RandomWalker2:
                 return [(self.current_node(), random.choice(_last_nodes_without_current))]
 
             return []
+        elif self.create_edge_strategy == "EveryRandomStepsNearestToCurrentInformation":
+            if not random.random() < self.probability_to_create_edge:
+                return []
+
+            # connect current node with the nearest information node to current node
+            _last_nodes_without_current = [node for node in self.last_nodes if node != self.current_node()]
+            _last_nodes_without_current_sorted_by_dist = sorted(_last_nodes_without_current, key=lambda node: abs(self.g.nodes[node]["information"] - self.g.nodes[self.current_node()]["information"]))
+
+            return [(self.current_node(), _last_nodes_without_current_sorted_by_dist[0])]
+        elif self.create_edge_strategy == "EveryRandomStepsLowestDistanceToSearchedInformation":
+            if not random.random() < self.probability_to_create_edge:
+                return []
+
+            # connect current node with the nearest distance node to searched information in the memory
+            _last_nodes_without_current = [node for node in self.last_nodes if node != self.current_node()]
+            _last_nodes_without_current_sorted_by_dist = sorted(_last_nodes_without_current, key=lambda node: abs(self.g.nodes[node]["information"] - self.searched_information))
+
+            return [(self.current_node(), _last_nodes_without_current_sorted_by_dist[0])]
+
+
+            
         raise Exception("Unknown create_edge_strategy " + self.create_edge_strategy)
 
 

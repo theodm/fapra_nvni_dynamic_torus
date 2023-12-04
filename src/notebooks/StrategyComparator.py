@@ -99,7 +99,30 @@ strategies_to_test = [
         "random_walker_2",
         RandomWalker2StrategyParams(0.82, 100, "EveryXStepsRandomConnection"),
     ),
+    (
+        "Random Walker 2 (EveryXStepsRandomConnection)",
+        "random_walker_2",
+        RandomWalker2StrategyParams(0.82, 100, "EveryXStepsRandomConnection"),
+    ),
+    (
+        "Random Walker 2 (EveryRandomStepsNearestToCurrentInformation)",
+        "random_walker_2",
+        RandomWalker2StrategyParams(
+            0.82, 100, "EveryRandomStepsNearestToCurrentInformation",  (1.0 / 50.0),
+        ),
+    ),
+    (
+        "Random Walker 2 (EveryRandomStepsLowestDistanceToSearchedInformation)",
+        "random_walker_2",
+        RandomWalker2StrategyParams(
+            0.82, 100, "EveryRandomStepsLowestDistanceToSearchedInformation", (1.0 / 50)
+        ),
+    ),
+    
 ]
+
+# ToDo: 
+# Increasing Probability?
 
 results_for_strategies = []
 
@@ -107,7 +130,7 @@ for strategy in strategies_to_test:
     print(f"Testing strategy {strategy[0]}")
     # simulate 20 times and show averages
     runs = []
-    for i in range(1000):
+    for i in range(100):
         res = simulate(
             graph_strategy="random",
             graph_stratey_params=RandomStrategyParams(),
@@ -125,15 +148,17 @@ for strategy in strategies_to_test:
 
     results_for_strategies.append(print_for_result(strategy[0], runs))
 
+print(results_for_strategies)
+
 # create dataframe
-df = pd.DataFrame(results_for_strategies)
+# df = pd.DataFrame(results_for_strategies)
 
-# display dataframe as html to file and open in browser
-# highligh column num_steps_avg
-html = df.style.highlight_min(subset=["num_steps_avg"]).render()
-with open("strategy_comparator.html", "w") as f:
-    f.write(html)
+# # display dataframe as html to file and open in browser
+# # highligh column num_steps_avg
+# html = df.style.highlight_min(subset=["num_steps_avg"]).render()
+# with open("strategy_comparator.html", "w") as f:
+#     f.write(html)
 
-import webbrowser
+# import webbrowser
 
-webbrowser.open("strategy_comparator.html")
+# webbrowser.open("strategy_comparator.html")
