@@ -1,6 +1,6 @@
-from src.plot.draw_torus import draw_torus_2d
-from src.plot.plot_information_distribution import plot_information_distribution
-from src.torus_creation.random_grid import create_random_2d_grid_network
+from plot.draw_torus import draw_torus_2d
+from plot.plot_information_distribution import plot_information_distribution
+from torus_creation.random_grid import create_random_2d_grid_network
 
 num_distinct_information = 50
 width = 30

@@ -3,8 +3,8 @@ from typing import Literal
 
 import networkx
 
-from src.ranged_int.ranged_int import ClampedInt, OverflowInt
-from src.torus_creation.shared.torus_utils import map_2d_point_to_3d_torus
+from ranged_int.ranged_int import ClampedInt, OverflowInt
+from torus_creation.shared.torus_utils import map_2d_point_to_3d_torus
 
 
 def find_increase_path_with_overflow(

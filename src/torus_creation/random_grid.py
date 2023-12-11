@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import networkx
 import random
 
-from src.torus_creation.shared.torus_utils import map_2d_point_to_3d_torus
+from torus_creation.shared.torus_utils import map_2d_point_to_3d_torus
 import scipy.stats as stats
 from loguru import logger
 

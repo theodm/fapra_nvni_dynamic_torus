@@ -1,7 +1,7 @@
 import networkx
 import skimage
 
-from src.torus_creation.shared.torus_utils import map_2d_point_to_3d_torus
+from torus_creation.shared.torus_utils import map_2d_point_to_3d_torus
 
 
 def create_2d_grid_from_image(
