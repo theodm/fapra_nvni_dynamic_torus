@@ -5,3 +5,6 @@
 /.idea/modules.xml
 /.idea/vcs.xml
 /venv
+
+.vscode/
+.DS_Store
