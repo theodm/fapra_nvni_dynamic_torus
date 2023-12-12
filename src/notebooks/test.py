@@ -1,4 +1,6 @@
 #%%
+import sys
+sys.path.append('/Users/larslandsbek/projects/fapra_nvni_dynamic_torus')
 from src.search.simulation import plot_single_result, simulate
 from src.search.strategy.random_walker_1 import RandomWalker1StrategyParams
 from src.torus_creation.random_grid import RandomNormalStrategyParams
