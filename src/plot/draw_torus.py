@@ -6,8 +6,8 @@ import plotly.graph_objects as go
 import networkx
 import random
 
-from plot.colormap import colormap_for_information
-from ranged_int.ranged_int import OverflowInt
+from src.plot.colormap import colormap_for_information
+from src.ranged_int.ranged_int import OverflowInt
 
 
 def get_line_points_from_edge_to_edge(
