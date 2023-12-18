@@ -1,5 +1,3 @@
-import sys
-sys.path.append('/Users/larslandsbek/projects/fapra_nvni_dynamic_torus')
 from statistics import stdev
 from src.search.simulation import plot_single_result, simulate
 from src.search.strategy.only_random_walker import OnlyRandomWalkerStrategyParams
