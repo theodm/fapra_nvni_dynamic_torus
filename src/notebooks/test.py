@@ -21,5 +21,6 @@ res = simulate(
     random_walker_start_point_strategy = "RandomNode"
 )
 
+print(res['convergence_time'])
 plot_single_result(res)
 # %%
