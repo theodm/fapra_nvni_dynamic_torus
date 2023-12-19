@@ -1,4 +1,4 @@
-from torus_creation.random_walker_grid import find_increase_path_with_overflow
+from src.torus_creation.random_walker_grid import find_increase_path_with_overflow
 
 
 def test_find_increase_path_with_overflow():

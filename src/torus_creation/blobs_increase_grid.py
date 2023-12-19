@@ -3,8 +3,8 @@ from typing import Literal
 
 import networkx
 
-from ranged_int.ranged_int import ClampedInt, OverflowInt
-from torus_creation.shared.torus_utils import map_2d_point_to_3d_torus
+from src.ranged_int.ranged_int import ClampedInt, OverflowInt
+from src.torus_creation.shared.torus_utils import map_2d_point_to_3d_torus
 
 
 def create_random_2d_grid_network_constant_blob_increase(
