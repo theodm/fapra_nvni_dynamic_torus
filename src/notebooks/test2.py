@@ -8,6 +8,7 @@ resultsB = []
 for i in range(1500):
     res = simulate(#
         graph_strategy="random",
+        graph_stratey_params=OnlyRandomWalkerStrategyParams,
         grid_width=40,
         grid_height=40,
         num_distinct_information=100,
@@ -17,6 +18,7 @@ for i in range(1500):
         num_random_walker=10,
         searched_information=50,
         max_steps=3000,
+        random_walker_start_point_strategy = "RandomNode"
     )
 
     resultsB.append(res)
@@ -26,6 +28,7 @@ resultsA = []
 for i in range(1500):
     res = simulate(
         graph_strategy="random",
+        graph_stratey_params=OnlyRandomWalkerStrategyParams,
         grid_width=40,
         grid_height=40,
         num_distinct_information=100,
@@ -38,6 +41,7 @@ for i in range(1500):
         num_random_walker=10,
         searched_information=50,
         max_steps=3000,
+        random_walker_start_point_strategy = "RandomNode"
     )
 
     resultsA.append(res)

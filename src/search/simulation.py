@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import time
 import networkx
 import random
 from loguru import logger
@@ -193,6 +194,9 @@ def simulate(
     # Bereits gefundene Knoten
     found_nodes = []
 
+    # Hier fangen wir an, die Zeit zu messen
+    start = time.time()
+
     # Führe die Simulation durch und
     # starten mit dem ersten Simulationsschritt (hier wird nicht mit 0 begonnen)
     step = 1
@@ -254,10 +258,14 @@ def simulate(
 
         # Wir brechen ab, wenn alle gesuchten Informationen des Graphen gefunden wurden
         if len(found_nodes) == searched_information_count:
+            end = time.time() # Timer stoppen
+            sim_time = end-start
             break
 
         # Wir brechen ab, wenn wir die maximale Anzahl an Schritten erreicht haben. :-(
         if step >= max_steps:
+            end = time.time() # Timer stoppen
+            sim_time = end-start
             break
 
         step += 1
@@ -294,6 +302,9 @@ def simulate(
         "num_searched_nodes": searched_information_count,
         # Wie sieht der Graph nun aus?
         "graph": g,
+        # Wie lange hat die Simulation gedauert?
+        "convergence_time": sim_time
+
     }
 
 

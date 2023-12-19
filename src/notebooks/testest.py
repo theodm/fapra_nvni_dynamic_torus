@@ -19,6 +19,7 @@ res = simulate(
     num_random_walker=10,
     searched_information=49,
     max_steps=5000,
+    random_walker_start_point_strategy = "RandomNode"
 )
 
 plot_single_result(res)
