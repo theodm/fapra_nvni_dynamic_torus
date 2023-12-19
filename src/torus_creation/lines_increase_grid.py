@@ -3,9 +3,9 @@ from typing import Literal
 
 import networkx
 
-from ranged_int.ranged_int import ClampedInt, OverflowInt
-from torus_creation.shared.line_utils import nodes_between_overflow
-from torus_creation.shared.torus_utils import map_2d_point_to_3d_torus
+from src.ranged_int.ranged_int import ClampedInt, OverflowInt
+from src.torus_creation.shared.line_utils import nodes_between_overflow
+from src.torus_creation.shared.torus_utils import map_2d_point_to_3d_torus
 
 
 def create_random_2d_grid_network_constant_lines_increase(
