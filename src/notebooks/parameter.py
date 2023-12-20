@@ -5,7 +5,7 @@ from src.search.simulation import simulate
 from src.search.strategy.random_walker_1 import RandomWalker1StrategyParams
 from src.torus_creation.random_grid import RandomStrategyParams
 
-max_steps = 20000
+max_steps = 200000
 grid_width_height = 20
 
 def simit(random_probability, random_probability_of_adding_edge, length_of_memory, num_random_walker):
@@ -56,14 +56,14 @@ import loguru
 loguru.logger.remove()
 loguru.logger.add("bayesopt.log", level="ERROR")
 
-def black_box_function(random_probability, num_random_walker): # Zu Testzwecken erstmal nur zwei Parameter
-    return 1 - simit(random_probability, 0.1, 10, int(num_random_walker))
+def black_box_function(random_probability, random_probability_of_adding_edge, length_of_memory, num_random_walker):
+    return 1 - simit(random_probability, random_probability_of_adding_edge, int(length_of_memory), int(num_random_walker))
 
 pbounds = {
-    'random_probability': (0.01, 0.99),
-    #'random_probability_of_adding_edge': (0.005, 0.3), # Zu Testzwecken erstmal ohne
-    #'length_of_memory': (5, grid_width_height**2), # Zu Testtwecken erstmal ohne
-    'num_random_walker': (1, grid_width_height)
+    'random_probability': (0.6, 0.99),
+    'random_probability_of_adding_edge': (0.005, 0.22),
+    'length_of_memory': (5, 0.9*(grid_width_height**2)),
+    'num_random_walker': (2, grid_width_height)
 }
 
 optimizer = BayesianOptimization(
