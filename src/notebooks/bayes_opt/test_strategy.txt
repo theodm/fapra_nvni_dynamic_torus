@@ -1,0 +1,43 @@
+Versuch 1.1:
+20 Durchläufe pro Parameter
+graph_strategy="random"
+graph_stratey_params=RandomStrategyParams()
+grid_width=20
+grid_height=20
+num_distinct_information=40
+random_walker_strategy="random_walker_1"
+random_walker_strategy_params=RandomWalker1StrategyParams(
+    random_probability=0.4 bis 0.99,
+    random_probability_of_adding_edge=0.05 bis 0.3,
+    length_of_memory=5 bis 400}
+num_random_walker=1 bis 20 
+max_steps=200000
+random_walker_start_point_strategy = "RandomNode"
+
+optimizer.maximize(
+    init_points=50,
+    n_iter=100,
+)
+
+
+
+Versuch 1.2:
+20 Durchläufe pro Parameter
+graph_strategy="random"
+graph_stratey_params=RandomStrategyParams()
+grid_width=20
+grid_height=20
+num_distinct_information=40
+random_walker_strategy="random_walker_1"
+random_walker_strategy_params=RandomWalker1StrategyParams(
+    random_probability=0.6 bis 0.99,
+    random_probability_of_adding_edge=0.05 bis 0.22,
+    length_of_memory=5 bis 305}
+num_random_walker=1 bis 20 
+max_steps=200000
+random_walker_start_point_strategy = "RandomNode"
+
+optimizer.maximize(
+    init_points=50,
+    n_iter=100,
+)
