@@ -90,7 +90,9 @@ class RandomWalker2:
     def walk(self) -> list[tuple]:
         # Don't visit nodes in history
         possible_nodes = list(self.g.neighbors(self.current_node()))
-        possible_nodes = [node for node in possible_nodes if node not in self.last_nodes]
+        # Performance: Set statt Liste (O(1) statt O(n))
+        last_nodes_set = set(self.last_nodes)
+        possible_nodes = [node for node in possible_nodes if node not in last_nodes_set]
 
         # Wenn wir keine Nachbarn haben, die nicht schon besucht wurden,
         # dann müssen wir halt einen besuchen, den wir schon besucht haben.
@@ -124,6 +126,7 @@ class RandomWalker2:
                         continue
 
                     edges_to_add.append((self.current_node(), node))
+                    break
 
                 return edges_to_add
             return []

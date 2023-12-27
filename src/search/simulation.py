@@ -201,6 +201,9 @@ def simulate(
     # starten mit dem ersten Simulationsschritt (hier wird nicht mit 0 begonnen)
     step = 1
     while True:
+        # if step % 10000 == 0:
+        #     print(f"Step {step}")
+
         # Wir lassen erst jeden Random Walker seinen Schritt machen
         # und danach werden wir die neuen Kanten, die er nach dem Schritt
         # erstellen möchte hinzufügen. Damit vermeiden wir das ein Random Walker

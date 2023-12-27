@@ -7,6 +7,8 @@ from src.search.strategy.random_walker_2 import RandomWalker2StrategyParams
 from src.torus_creation.random_grid import RandomStrategyParams
 
 import pandas as pd
+import time
+from joblib import Parallel, delayed
 
 # Logging deaktivieren, denn das macht hier keinen Sinn und bläht die Konsole nur auf
 # stattdessen einfach in eine Log-Datei
@@ -123,26 +125,49 @@ results_for_strategies = []
 
 for strategy in strategies_to_test:
     print(f"Testing strategy {strategy[0]}")
+
+    # Measure time
+    strategy_start_time = time.time()
+
     # simulate 20 times and show averages
     runs = []
-    for i in range(100):
+
+    def _run(index):
+        loguru.logger.remove()
+        loguru.logger.add("strategy_comparator.log", level="ERROR")
+
+        print(f"Run {index}")
+
+        # Measure time
+        start_time = time.time()
+
         res = simulate(
             graph_strategy="random",
             graph_stratey_params=RandomStrategyParams(),
-            grid_width=40,
-            grid_height=40,
+            grid_width=200,
+            grid_height=300,
             num_distinct_information=100,
             random_walker_strategy=strategy[1],
             random_walker_strategy_params=strategy[2],
             num_random_walker=10,
             searched_information=50,
-            max_steps=3000,
+            max_steps=500000,
             random_walker_start_point_strategy="RandomNode",
         )
 
-        runs.append(res)
+        print(f"Run {index} took {time.time() - start_time} seconds")
 
-    results_for_strategies.append(print_for_result(strategy[0], runs))
+        return res
+
+
+    #runs = [_run() for i in range(100)]
+    # run in parallel joblib
+
+    runs = Parallel(n_jobs=4, batch_size=5)(delayed(_run)(i) for i in range(100))
+
+    results_for_strategies.append(print_for_result(strategy[0], runs))#
+
+    print(f"Testing strategy {strategy[0]} took {time.time() - strategy_start_time} seconds")
 
 # create dataframe
 df = pd.DataFrame(results_for_strategies)
