@@ -72,6 +72,20 @@ class ZeroZeroStartPointStrategy:
     def get_start_point(self, g: networkx.Graph):
         return (0, 0)
 
+class PredefinedNodeStartPointStrategy:
+    def __init__(self, node):
+        self.node = node
+
+    def get_start_point(self, g: networkx.Graph):
+        return self.node
+
+class PredefinedNodesStartPointStrategy:
+    def __init__(self, nodes):
+        self.nodes = nodes
+
+    def get_start_point(self, g: networkx.Graph, walker_index: int):
+        return self.nodes[walker_index]
+
 class RandomNodeStartPointStrategy:
     def __init__(self):
         pass
@@ -114,6 +128,8 @@ def count_searched_information_in_graph(g: networkx.Graph, searched_information:
 
 
 def simulate(
+    graph_seed: int,
+
     # Grundsätzliche Strategie um den Graphen / Torus
     # zu erstellen (wie werden die Informationen darauf verteilt)
     graph_strategy: GraphStrategy,
@@ -129,6 +145,7 @@ def simulate(
     num_random_walker: int,
     searched_information: int,
     max_steps: int,
+
     random_walker_start_point_strategy: RandomWalkerStartPointStrategy,
 ):
     logger.info("Started simulation with the following parameters:")
@@ -170,7 +187,7 @@ def simulate(
         # Startpunkt kann je nach Startpunkt-Strategie variieren
         random_walker_start_point_strategy_fn = create_random_walker_start_point_strategy(random_walker_start_point_strategy)
         
-        start_point = random_walker_start_point_strategy_fn.get_start_point(g)
+        start_point = random_walker_start_point_strategy_fn.get_start_point(g, i)
         
         random_walkers.append(
             fn_random_walker_strategy.withParams(
