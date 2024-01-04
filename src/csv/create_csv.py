@@ -1,3 +1,4 @@
+import numpy
 
 from src.torus_creation.random_grid import create_random_2d_grid_network, create_random_2d_grid_network_normal
 import csv 
@@ -39,23 +40,24 @@ csv = csv.writer(open("data.csv", "w"))
 # write header
 csv.writerow(
     [
-        "id",
-        "execution_num",
-        "seed",
-        "erstellungsmethode", 
-        "groesse",
-        "d_groesse_width",
-        "d_groesse_height",
-        "anzahl_informationen", 
-        "anzahl_walker", 
-        "startpunkt",
-        "startpunkte",
-        "anzahl_simulationen",
-        "gesuchte_information",
-        "gesuchte_information_num",
-        "group",
-        "normal_mean",
-        "normal_std_dev"
+        "id", # 0
+        "execution_num", # 1
+        "seed", # 2
+        "erstellungsmethode", # 3
+        "groesse", # 4
+        "d_groesse_width", # 5
+        "d_groesse_height", # 6
+        "anzahl_informationen", # 7
+        "anzahl_walker", # 8
+        "startpunkt", # 9
+        "startpunkte", # 10
+        "anzahl_simulationen", # 11
+        "gesuchte_information", # 12
+        "gesuchte_information_num", # 13
+        "group", # 14
+        "normal_mean", # 15
+        "normal_std_dev", # 16
+        "test_check_num_nodes" # 17
 
     ]
 )
@@ -85,7 +87,7 @@ for e in erstellungsmethode:
                                 c = c + 1
                                 # generate random seed (max int)
                                 while True:
-                                    seed = random.randint(0, sys.maxsize)
+                                    seed = random.randint(0, 2 ** 32 - 1)
                                     if seed not in used_seeds:
                                         used_seeds.append(id)
                                         break
@@ -95,14 +97,15 @@ for e in erstellungsmethode:
                                 width = int(g.split("x")[0])
                                 height = int(g.split("x")[1])
 
-                                # seed setzen
-                                random.seed(seed)
                                 
                                 mean = None
                                 std_dev = None
 
                                 # erstelle den graphen für den seed
                                 if e == "random":
+                                    # seed setzen
+                                    random.seed(seed)
+                                    numpy.random.seed(seed)
                                     graph = create_random_2d_grid_network(
                                         width=width,
                                         height=height,
@@ -114,6 +117,9 @@ for e in erstellungsmethode:
                                     mean = num_distinct_information / 2 - 1
                                     std_dev = num_distinct_information / 8
 
+                                    # seed setzen
+                                    random.seed(seed)
+                                    numpy.random.seed(seed)
                                     graph = create_random_2d_grid_network_normal(
                                         width=width,
                                         height=height,
@@ -139,25 +145,32 @@ for e in erstellungsmethode:
                                     if gi == "normal_selten":
                                         bb = verteilung_to_information[:drittel]
                                         bb = [x for x in bb if x[0] > 0]
-                                        gesuchte_information_num = random.choice(bb)[0]
+                                        gesuchte_information_num = random.choice(bb)[1]
                                     elif gi == "normal_mittel":
                                         bb = verteilung_to_information[drittel:2 * drittel]
                                         bb = [x for x in bb if x[0] > 0]
-                                        gesuchte_information_num = random.choice(bb)[0]
+                                        gesuchte_information_num = random.choice(bb)[1]
                                     elif gi == "normal_häufig":
                                         bb = verteilung_to_information[2 * drittel:]
                                         bb = [x for x in bb if x[0] > 0]
-                                        gesuchte_information_num = random.choice(bb)[0]
+                                        gesuchte_information_num = random.choice(bb)[1]
                                 else:
                                     raise Exception("Erstellungsmethode nicht bekannt")
-                                
+
+                                # test check num nodes (Anzahl der Knoten mit der gesuchten Information)
+                                test_check_num_nodes = 0
+
+                                for node in graph.nodes:
+                                    if graph.nodes[node]["information"] == gesuchte_information_num:
+                                        test_check_num_nodes += 1
+
                                 startpunkte = []
 
                                 if s == "same":
                                     # select random node
                                     random_node = random.choice(list(graph.nodes))
 
-                                    startpunkte = random_node
+                                    startpunkte = [random_node]
                                 elif s == "random_each":
                                     for _ in range(w):
                                         # select random node
@@ -221,6 +234,8 @@ for e in erstellungsmethode:
                                         mean,
                                         # normal_std_dev
                                         std_dev,
+                                        # test_check_num_nodes
+                                        test_check_num_nodes
                                     ]
 
                                 #print(row)

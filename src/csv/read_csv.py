@@ -5,13 +5,18 @@ import random
 from statistics import stdev
 from typing import Literal
 
-from src.search.simulation import simulate
+from src.search.simulation import simulate, PredefinedNodesStartPointStrategy, PredefinedNodeStartPointStrategy
 from src.search.strategy.only_random_walker import OnlyRandomWalkerStrategyParams
 from src.search.strategy.random_walker_1 import RandomWalker1StrategyParams
 from src.search.strategy.random_walker_2 import RandomWalker2StrategyParams
 from src.torus_creation.random_grid import RandomNormalStrategyParams, RandomStrategyParams
 
 import pandas as pd
+
+# disable loguru
+import loguru
+
+loguru.logger.remove()
 
 @dataclass
 class ExecutionParams:
@@ -25,6 +30,8 @@ class ExecutionParams:
     startpunkte: tuple | list[tuple]
     gesuchte_information_num: int
 
+    test_check_num_nodes: int
+
     normal_mean: float = 0
     normal_std_dev: float = 0
 
@@ -36,7 +43,6 @@ output_csv = csv.writer(open("output_data.csv", "w"))
 
 # write header
 output_csv.writerow(
-
     [
         "result_anzahl_schritte",
         "id",
@@ -53,10 +59,10 @@ output_csv.writerow(
         "anzahl_simulationen",
         "gesuchte_information",
         "gesuchte_information_num",
-        "anzahl_schritte",
         "group",
         "normal_mean",
-        "normal_std_dev"
+        "normal_std_dev",
+        "test_check_num_nodes"
     ]
 )
 
@@ -65,19 +71,23 @@ def read_csv_and_execute(file, fn):
 
     # skip header
     next(icsv)
-    
+
+    executions = []
+
     for row in icsv:
+        # access rows by name
         params = ExecutionParams(
-            seed = int(row[2]),
-            erstellungsmethode = row[3], # type: ignore
-            width = int(row[4]),
-            height = int(row[5]),
-            anzahl_informationen = int(row[6]),
-            anzahl_walker = int(row[7]),
-            startpunkte = eval(row[8]),
-            gesuchte_information_num = int(row[13]),
-            normal_mean = float(row[17]),
-            normal_std_dev = float(row[18]),
+            seed=int(row[2]),
+            erstellungsmethode=row[3],
+            width=int(row[5]),
+            height=int(row[6]),
+            anzahl_informationen=int(row[7]),
+            anzahl_walker=int(row[8]),
+            startpunkte=eval(row[10]),
+            gesuchte_information_num=int(row[13]),
+            test_check_num_nodes=int(row[17]),
+            normal_mean=float(row[15]) if row[15] != "" else 0.0,
+            normal_std_dev=float(row[16]) if row[16] != "" else 0.0,
         )
 
         result = fn(params)
@@ -101,33 +111,48 @@ def read_csv_and_execute(file, fn):
             row[14],
             row[15],
             row[16],
+            row[17],
         ])
 
 def execute(params: ExecutionParams):
-    random.seed(params.seed)
-
     graph_strategy = params.erstellungsmethode
-    graph_strategy_params = graph_strategy == "random" and RandomStrategyParams() or RandomNormalStrategyParams(
+    graph_strategy_params = RandomStrategyParams() if graph_strategy == "random" else RandomNormalStrategyParams(
         mean=params.normal_mean,
         std_dev=params.normal_std_dev
     )
 
-    res = simulate(
-        graph_strategy="random",
-        graph_stratey_params=RandomStrategyParams(),
-        grid_width=40,
-        grid_height=40,
-        num_distinct_information=100,
-        random_walker_strategy=strategy[1],
-        random_walker_strategy_params=strategy[2],
-        num_random_walker=10,
-        searched_information=50,
-        max_steps=3000,
-        random_walker_start_point_strategy="RandomNode",
+    random_walker_start_point_strategy = PredefinedNodeStartPointStrategy(params.startpunkte[0]) if len(params.startpunkte) == 1 else PredefinedNodesStartPointStrategy(
+        params.startpunkte
     )
+
+    res = simulate(
+        graph_strategy=graph_strategy,
+        graph_stratey_params=graph_strategy_params,
+        grid_width=params.width,
+        grid_height=params.height,
+        num_distinct_information=params.anzahl_informationen,
+        random_walker_strategy="random_walker_2",
+        random_walker_strategy_params=RandomWalker2StrategyParams(0.82, 100, "EveryXStepsRandomConnection"),
+        num_random_walker=params.anzahl_walker,
+        searched_information=params.gesuchte_information_num,
+        max_steps=params.width * params.height * 10,
+        random_walker_start_point_strategy=random_walker_start_point_strategy,
+        graph_seed=params.seed,
+    )
+
+    if res["num_searched_nodes"] != params.test_check_num_nodes:
+        print("ERROR: Wrong number of searched nodes " + str(res["num_searched_nodes"]) + " " + str(params.test_check_num_nodes))
+        print(res)
+        print(params)
+        exit(1)
+
+    return ExecutionResult(
+        anzahl_schritte=res["num_steps"]
+    )
+
 
 
 read_csv_and_execute(
     "data.csv",
-
+    execute
 )

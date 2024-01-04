@@ -2,6 +2,8 @@ from dataclasses import dataclass
 import time
 import networkx
 import random
+
+import numpy.random
 from loguru import logger
 from src.plot.draw_torus import (
     draw_torus_2d,
@@ -63,20 +65,19 @@ RandomWalkerStrategyParams = Union[
 ]
 
 
-RandomWalkerStartPointStrategy = Literal["ZeroZero", "RandomNode","SingleRandomNode"]
 
 class ZeroZeroStartPointStrategy:
     def __init__(self):
         pass
 
-    def get_start_point(self, g: networkx.Graph):
+    def get_start_point(self, g: networkx.Graph, walker_index: int):
         return (0, 0)
 
 class PredefinedNodeStartPointStrategy:
     def __init__(self, node):
         self.node = node
 
-    def get_start_point(self, g: networkx.Graph):
+    def get_start_point(self, g: networkx.Graph, walker_index: int):
         return self.node
 
 class PredefinedNodesStartPointStrategy:
@@ -90,7 +91,7 @@ class RandomNodeStartPointStrategy:
     def __init__(self):
         pass
 
-    def get_start_point(self, g: networkx.Graph):
+    def get_start_point(self, g: networkx.Graph, walker_index: int):
         return random.choice(list(g.nodes()))
 
 class SingleRandomNodeStartPointStrategy:
@@ -99,23 +100,15 @@ class SingleRandomNodeStartPointStrategy:
     def __init__(self):
         pass
 
-    def get_start_point(self, g: networkx.Graph):
+    def get_start_point(self, g: networkx.Graph, walker_index: int):
         if not self.single_start_point:
             self.single_start_point = random.choice(list(g.nodes()))
         else:
             return self.single_start_point
 
-def create_random_walker_start_point_strategy(
-    random_walker_start_point_strategy: RandomWalkerStartPointStrategy
-):
-    if random_walker_start_point_strategy == "ZeroZero":
-        return ZeroZeroStartPointStrategy()
-    elif random_walker_start_point_strategy == "RandomNode":
-        return RandomNodeStartPointStrategy()
-    elif random_walker_start_point_strategy == "SingleRandomNode":
-        return SingleRandomNodeStartPointStrategy()
-    else:
-        raise Exception("invalid random walker start point strategy: " + random_walker_start_point_strategy)
+
+RandomWalkerStartPointStrategy = ZeroZeroStartPointStrategy | RandomNodeStartPointStrategy | SingleRandomNodeStartPointStrategy | PredefinedNodeStartPointStrategy | PredefinedNodesStartPointStrategy
+
 
 def count_searched_information_in_graph(g: networkx.Graph, searched_information: int):
     count = 0
@@ -128,8 +121,6 @@ def count_searched_information_in_graph(g: networkx.Graph, searched_information:
 
 
 def simulate(
-    graph_seed: int,
-
     # Grundsätzliche Strategie um den Graphen / Torus
     # zu erstellen (wie werden die Informationen darauf verteilt)
     graph_strategy: GraphStrategy,
@@ -147,6 +138,8 @@ def simulate(
     max_steps: int,
 
     random_walker_start_point_strategy: RandomWalkerStartPointStrategy,
+
+    graph_seed: int | None = None,
 ):
     logger.info("Started simulation with the following parameters:")
     logger.info(f"graph_strategy: {graph_strategy}")
@@ -170,6 +163,10 @@ def simulate(
     if not fn_graph_strategy:
         raise Exception("invalid graph strategy: " + graph_strategy)
 
+    if graph_seed:
+        random.seed(graph_seed)
+        numpy.random.seed(graph_seed)
+
     g = fn_graph_strategy(
         grid_width, grid_height, num_distinct_information, graph_stratey_params
     )
@@ -185,9 +182,7 @@ def simulate(
     random_walkers = []
     for i in range(num_random_walker):
         # Startpunkt kann je nach Startpunkt-Strategie variieren
-        random_walker_start_point_strategy_fn = create_random_walker_start_point_strategy(random_walker_start_point_strategy)
-        
-        start_point = random_walker_start_point_strategy_fn.get_start_point(g, i)
+        start_point = random_walker_start_point_strategy.get_start_point(g, i)
         
         random_walkers.append(
             fn_random_walker_strategy.withParams(
