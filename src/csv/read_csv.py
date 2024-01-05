@@ -1,25 +1,22 @@
 import csv
+import time
 
 from dataclasses import dataclass
-import random
-from statistics import stdev
 from typing import Literal
-
-from src.search.simulation import simulate, PredefinedNodesStartPointStrategy, PredefinedNodeStartPointStrategy
-from src.search.strategy.only_random_walker import OnlyRandomWalkerStrategyParams
-from src.search.strategy.random_walker_1 import RandomWalker1StrategyParams
-from src.search.strategy.random_walker_2 import RandomWalker2StrategyParams
-from src.torus_creation.random_grid import RandomNormalStrategyParams, RandomStrategyParams
-
-import pandas as pd
 
 # disable loguru
 import loguru
+from joblib import Memory
 
 loguru.logger.remove()
 
+memory = Memory("cachedir", verbose=0)
+
 @dataclass
 class ExecutionParams:
+    row_id: int
+    group: str
+
     seed: int
 
     erstellungsmethode: Literal["random"] | Literal["random_normal"]
@@ -39,44 +36,64 @@ class ExecutionParams:
 class ExecutionResult:
     anzahl_schritte: int
 
-output_csv = csv.writer(open("output_data.csv", "w"))
 
-# write header
-output_csv.writerow(
-    [
-        "result_anzahl_schritte",
-        "id",
-        "execution_num",
-        "seed",
-        "erstellungsmethode",
-        "groesse",
-        "d_groesse_width",
-        "d_groesse_height",
-        "anzahl_informationen",
-        "anzahl_walker",
-        "startpunkt",
-        "startpunkte",
-        "anzahl_simulationen",
-        "gesuchte_information",
-        "gesuchte_information_num",
-        "group",
-        "normal_mean",
-        "normal_std_dev",
-        "test_check_num_nodes"
-    ]
-)
+def read_csv_and_execute(input_file, output_file, fn, parallel=False):
+    global _num_rows
 
-def read_csv_and_execute(file, fn):
-    icsv = csv.reader(open(file, "r"))
+    @memory.cache
+    def _fn(params: ExecutionParams) -> ExecutionResult:
+        print(f"Executing row {params.row_id} of {_num_rows} ({params.group})")
+
+        start_time = time.time()
+
+        result = fn(params)
+
+        elapsed_time = time.time() - start_time
+
+        print(f"Finished row {params.row_id} of {_num_rows} in {elapsed_time} seconds")
+        return result
+
+
+    icsv = csv.reader(open(input_file, "r"))
+    ocsv = csv.writer(open(output_file, "w"))
+
+    # write header
+    ocsv.writerow(
+        [
+            "result_anzahl_schritte",
+            "id",
+            "execution_num",
+            "seed",
+            "erstellungsmethode",
+            "groesse",
+            "d_groesse_width",
+            "d_groesse_height",
+            "anzahl_informationen",
+            "anzahl_walker",
+            "startpunkt",
+            "startpunkte",
+            "anzahl_simulationen",
+            "gesuchte_information",
+            "gesuchte_information_num",
+            "group",
+            "normal_mean",
+            "normal_std_dev",
+            "test_check_num_nodes"
+        ]
+    )
 
     # skip header
     next(icsv)
 
     executions = []
 
+    i = 1
     for row in icsv:
         # access rows by name
         params = ExecutionParams(
+            row_id=i,
+            group=row[14],
+
             seed=int(row[2]),
             erstellungsmethode=row[3],
             width=int(row[5]),
@@ -90,9 +107,30 @@ def read_csv_and_execute(file, fn):
             normal_std_dev=float(row[16]) if row[16] != "" else 0.0,
         )
 
-        result = fn(params)
+        executions.append((row, params))
+        i = i + 1
 
-        output_csv.writerow([
+    _num_rows = i
+
+    print("Executing " + str(len(executions)) + " rows")
+    start_time = time.time()
+
+    if not parallel:
+        results = [(row, _fn(params)) for row, params in executions]
+    else:
+        # parallel with joblib
+        from joblib import Parallel, delayed
+
+        def __fn(row, params):
+            return (row, _fn(params))
+
+        results = Parallel(n_jobs=-1)(delayed(__fn)(row, params) for row, params in executions)
+
+    print(f"Finished executing {len(executions)} rows in {time.time() - start_time} seconds")
+    print ("Writing " + str(len(results)) + " rows")
+
+    for (row, result) in results:
+        ocsv.writerow([
             result.anzahl_schritte,
             row[0],
             row[1],
@@ -113,46 +151,3 @@ def read_csv_and_execute(file, fn):
             row[16],
             row[17],
         ])
-
-def execute(params: ExecutionParams):
-    graph_strategy = params.erstellungsmethode
-    graph_strategy_params = RandomStrategyParams() if graph_strategy == "random" else RandomNormalStrategyParams(
-        mean=params.normal_mean,
-        std_dev=params.normal_std_dev
-    )
-
-    random_walker_start_point_strategy = PredefinedNodeStartPointStrategy(params.startpunkte[0]) if len(params.startpunkte) == 1 else PredefinedNodesStartPointStrategy(
-        params.startpunkte
-    )
-
-    res = simulate(
-        graph_strategy=graph_strategy,
-        graph_stratey_params=graph_strategy_params,
-        grid_width=params.width,
-        grid_height=params.height,
-        num_distinct_information=params.anzahl_informationen,
-        random_walker_strategy="random_walker_2",
-        random_walker_strategy_params=RandomWalker2StrategyParams(0.82, 100, "EveryXStepsRandomConnection"),
-        num_random_walker=params.anzahl_walker,
-        searched_information=params.gesuchte_information_num,
-        max_steps=params.width * params.height * 10,
-        random_walker_start_point_strategy=random_walker_start_point_strategy,
-        graph_seed=params.seed,
-    )
-
-    if res["num_searched_nodes"] != params.test_check_num_nodes:
-        print("ERROR: Wrong number of searched nodes " + str(res["num_searched_nodes"]) + " " + str(params.test_check_num_nodes))
-        print(res)
-        print(params)
-        exit(1)
-
-    return ExecutionResult(
-        anzahl_schritte=res["num_steps"]
-    )
-
-
-
-read_csv_and_execute(
-    "data.csv",
-    execute
-)

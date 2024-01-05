@@ -58,7 +58,6 @@ csv.writerow(
         "normal_mean", # 15
         "normal_std_dev", # 16
         "test_check_num_nodes" # 17
-
     ]
 )
 count = 0
