@@ -1,6 +1,6 @@
 from statistics import stdev
 
-from src.search.simulation import simulate
+from src.search.simulation import RandomNodeStartPointStrategy, simulate
 from src.search.strategy.only_random_walker import OnlyRandomWalkerStrategyParams
 from src.search.strategy.random_walker_1 import RandomWalker1StrategyParams
 from src.search.strategy.random_walker_2 import RandomWalker2StrategyParams
@@ -144,15 +144,15 @@ for strategy in strategies_to_test:
         res = simulate(
             graph_strategy="random",
             graph_stratey_params=RandomStrategyParams(),
-            grid_width=200,
-            grid_height=300,
+            grid_width=50,
+            grid_height=50,
             num_distinct_information=100,
             random_walker_strategy=strategy[1],
             random_walker_strategy_params=strategy[2],
             num_random_walker=10,
             searched_information=50,
             max_steps=500000,
-            random_walker_start_point_strategy="RandomNode",
+            random_walker_start_point_strategy=RandomNodeStartPointStrategy(),
         )
 
         print(f"Run {index} took {time.time() - start_time} seconds")

@@ -165,7 +165,7 @@ def _get_text_for_node(g, node):
     """
     Gibt den Text zurück, der beim Hovern über einen Knoten angezeigt werden soll.
     """
-    return f"{g.nodes[node]['information']} ({node[0]},{node[1]}) [v: {g.nodes[node]['visited']}]"
+    return f"{g.nodes[node]['information']} ({node[0]},{node[1]}) [v: {g.nodes[node]['visited'] if 'visited' in g.nodes[node] else '<n/a>'}]"
 
 
 class ColorModeInformation:

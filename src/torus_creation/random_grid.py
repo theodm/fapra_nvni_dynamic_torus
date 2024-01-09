@@ -1,7 +1,9 @@
+from cgitb import small
 from dataclasses import dataclass
 
 import networkx
 import random
+from src.torus_creation.random_grid_shared import sh_create_random_2d_grid_network, sh_create_random_normal_2d_grid_network
 
 from src.torus_creation.shared.torus_utils import map_2d_point_to_3d_torus
 import scipy.stats as stats
@@ -10,7 +12,7 @@ from loguru import logger
 
 @dataclass
 class RandomStrategyParams:
-    # Keine Parameter
+    small_world: bool = False
     pass
 
 
@@ -18,12 +20,14 @@ class RandomStrategyParams:
 class RandomNormalStrategyParams:
     mean: float
     std_dev: float
+    small_world: bool = False
 
     @staticmethod
-    def default(num_distinct_information: int):
+    def default(num_distinct_information: int, small_world: bool = False):
         return RandomNormalStrategyParams(
             mean=num_distinct_information / 2 - 1,
             std_dev=num_distinct_information / 8,
+            small_world=small_world,
         )
 
     pass
@@ -50,49 +54,18 @@ def create_random_2d_grid_network_normal(
     num_distinct_information: int,
     mean: float,
     std_dev: float,
+    small_world: bool = False
 ) -> networkx.Graph:
-    """
-    Erstellt einen Graphen in Form eines Netzes mit den angegebenen Höhen- und Breitenmaßen. Dabei
-    erhalten die Knoten zufällige Informationen zwischen 1 und 10. Die Koordinaten der Knoten in einem Torus
-    werden als Attribut gespeichert.
+    g = sh_create_random_normal_2d_grid_network(
+        width=width,
+        height=height,
+        num_distinct_information=num_distinct_information,
+        mean=mean,
+        std_dev=std_dev,
+        small_world=small_world,
+    )    
 
-    Args:
-        height (int): Die Höhe des Torus.
-        width (int): Die Breite des Torus.
-        num_distinct_information (int): Die Anzahl der unterschiedlichen Informationen.
-
-    Returns:
-        networkx.Graph: Der erstellte Graph.
-    """
-
-    g = networkx.grid_2d_graph(width, height, periodic=True)
-
-    # Hier wird die truncated Standardverteilung verwendet, da wir nur Werte zwischen 0 und num_distinct_information - 1
-    # haben wollen. (siehe https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.truncnorm.html
-    lower = 0
-    upper = num_distinct_information - 1
-
-    mu = mean if mean else (num_distinct_information / 2 - 1)
-    sigma = std_dev if std_dev else num_distinct_information / 8
-
-    logger.debug("mu: {mu}, sigma: {sigma}", mu=mu, sigma=sigma)
-
-    X = stats.truncnorm((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-
-    # Wir erstellen die Zufallswerte vorab,
-    # dann verwenden wir sie
-    random_information = X.rvs(width * height).tolist()
-
-    for node in g.nodes():
-        t_pos = map_2d_point_to_3d_torus(node[0], node[1], width, height)
-
-        # 3D-Koordinaten des Knotens
-        g.nodes[node]["x_pos"] = t_pos[0]
-        g.nodes[node]["y_pos"] = t_pos[1]
-        g.nodes[node]["z_pos"] = t_pos[2]
-
-        # Zufällige Information
-        g.nodes[node]["information"] = int(random_information.pop())
+    _add_3d_pos_to_graph(g, width, height)
 
     return g
 
@@ -111,24 +84,23 @@ def create_random_2d_grid_network_with_params(
 
 
 def create_random_2d_grid_network(
-    width: int, height: int, num_distinct_information: int
+    width: int,
+    height: int, 
+    num_distinct_information: int,
+    small_world: bool = False
 ) -> networkx.Graph:
-    """
-    Erstellt einen Graphen in Form eines Netzes mit den angegebenen Höhen- und Breitenmaßen. Dabei
-    erhalten die Knoten zufällige Informationen zwischen 1 und 10. Die Koordinaten der Knoten in einem Torus
-    werden als Attribut gespeichert.
+    g = sh_create_random_2d_grid_network(
+        width=width,
+        height=height,
+        num_distinct_information=num_distinct_information,
+        small_world=small_world,
+    )    
 
-    Args:
-        height (int): Die Höhe des Torus.
-        width (int): Die Breite des Torus.
-        num_distinct_information (int): Die Anzahl der unterschiedlichen Informationen.
+    _add_3d_pos_to_graph(g, width, height)
 
-    Returns:
-        networkx.Graph: Der erstellte Graph.
-    """
+    return g
 
-    g = networkx.grid_2d_graph(width, height, periodic=True)
-
+def _add_3d_pos_to_graph(g: networkx.Graph, width: int, height: int):
     for node in g.nodes():
         t_pos = map_2d_point_to_3d_torus(node[0], node[1], width, height)
 
@@ -136,8 +108,5 @@ def create_random_2d_grid_network(
         g.nodes[node]["x_pos"] = t_pos[0]
         g.nodes[node]["y_pos"] = t_pos[1]
         g.nodes[node]["z_pos"] = t_pos[2]
-
-        # Zufällige Information
-        g.nodes[node]["information"] = random.randrange(0, num_distinct_information)
-
+    
     return g
