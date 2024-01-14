@@ -126,7 +126,7 @@ def sh_create_random_normal_2d_grid_network(
 
     g = nx.grid_2d_graph(width, height, periodic=True)
 
-    _add_random_normal_information_to_all_nodes(g, num_distinct_information, width, height, mean, std_dev)
+    _add_random_normal_information_to_all_nodes(g, width, height, num_distinct_information, mean, std_dev)
 
     if small_world:
         _add_random_edges_to_all_nodes(g, width, height)
