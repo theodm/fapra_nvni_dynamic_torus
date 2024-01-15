@@ -1,3 +1,4 @@
+import networkx as nx
 import numpy
 
 from src.torus_creation.random_grid import create_random_2d_grid_network, create_random_2d_grid_network_normal
@@ -29,7 +30,7 @@ groesse = ["100x100", "200x300"]
 anzahl_informationen = [10, 100, 1000]
 anzahl_walker = [1, 10, 100]
 startpunkt = ["same", "random_each"]
-anzahl_simulationen = [1] #[200]
+anzahl_simulationen = [1]
 
 gesuchte_information_normal = ["normal_selten", "normal_mittel", "normal_häufig"]
 gesuchte_information_random = ["<not defined>"]
@@ -40,23 +41,44 @@ csv = csv.writer(open("data.csv", "w"))
 # write header
 csv.writerow(
     [
+        # Eine eindeutige ID, welche die Ausführungsparameter eindeutig identifiziert,
+        # damit können später die Ergebnisse auf die Ausführungsparameter zurückgeführt werden
         "id", # 0
+        # Die Nummer der Ausführung für die gleichen Ausführungsparameter (ohne Seed)
         "execution_num", # 1
+        # Seed für die Erstellung des Graphen
         "seed", # 2
+        # Erstellungsmethode: Gleichverteilt = "random", Normalverteilt = "random_normal"
         "erstellungsmethode", # 3
+        # Größe des Graphen (Breite x Höhe) (als String) [z.B. "100x100", "200x300"]
         "groesse", # 4
+        # Breite des Graphen (als Zahl)
         "d_groesse_width", # 5
+        # Höhe des Graphen (als Zahl)
         "d_groesse_height", # 6
+        # Anzahl unterschiedlicher Informationen des Graphne [z.B. 10, 100, 1000]
         "anzahl_informationen", # 7
+        # Anzahl der Random Walker [z.B. 1, 10, 100]
         "anzahl_walker", # 8
+        # Startpunkt der Random Walker: Alle Walker starten am gleichen Punkt = "same", Jeder Walker startet an einem zufälligen Punkt = "random_each"
         "startpunkt", # 9
-        "startpunkte", # 10
+        # Startpunkte der Random Walker (als Liste von Strings) [z.B. ["(0, 0)", "(1, 1)", "(2, 2)"]], im Falle von "same" ist die Liste nur ein Element lang [für die tatsächliche Ausführung]        "startpunkte", # 10
+        # Anzahl der Simulationen für die gleichen Ausführungsparameter (mit unterschiedlichen Seeds)
         "anzahl_simulationen", # 11
+        # Gesuchte Information: Selten = "normal_selten", Mittel = "normal_mittel", Häufig = "normal_häufig"
         "gesuchte_information", # 12
+        # Nummer der gesuchten Information (als Zahl) [für die tatsächliche Ausführung]
         "gesuchte_information_num", # 13
+        # Gruppe der Ausführungsparameter (z.B. "random_normal_200x300_100_100_same_normal_häufig") zum einfachen
+        # Gruppieren aller Ausführungen mit den gleichen Ausführungsparametern (ohne Seed)
         "group", # 14
+        # bei Normalverteilung: Mittelwert
         "normal_mean", # 15
+        # bei Normalverteilung: Standardabweichung
         "normal_std_dev", # 16
+        # Anzahl der Knoten mit der gesuchten Information (für die tatsächliche Ausführung)
+        # als Test, ob die Erstellung des Graphen korrekt war (bei unterschiedlichen Seeds kommt
+        # es auch zu unterschiedlichen Werten).
         "test_check_num_nodes" # 17
     ]
 )
