@@ -29,7 +29,7 @@ def _add_random_edge(graph, node, width, height):
     graph.add_edge(node, v)
 
 
-def _add_random_edges_to_all_nodes(graph, width, height, p = 0.2):
+def _add_random_edges_to_all_nodes(graph, width, height, p = 1.0):
     sorted_nodes = sorted(graph.nodes(), key=lambda x: (x[1], x[0]))
 
     for node in sorted_nodes:
