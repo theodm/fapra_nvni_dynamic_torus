@@ -1,83 +1,88 @@
 import random
-from bayes_opt import BayesianOptimization
+#from bayes_opt import BayesianOptimization
 from sklearn.model_selection import ParameterGrid
-from src.search.simulation import simulate
+from src.search.simulation import simulate, RandomNodeStartPointStrategy
 from src.search.strategy.random_walker_1 import RandomWalker1StrategyParams
+from src.search.strategy.random_walker_3 import RandomWalker3StrategyParams
 from src.torus_creation.random_grid import RandomStrategyParams
-
-max_steps = 200000
-grid_width_height = 20
-
-def simit(random_probability, random_probability_of_adding_edge, length_of_memory, num_random_walker):
-    results = []
-    for i in range(20):
-        res = simulate(
-            graph_strategy="random",
-            graph_stratey_params=RandomStrategyParams(),
-            grid_width=grid_width_height,
-            grid_height=grid_width_height,
-            num_distinct_information=(grid_width_height**2)/10,
-            random_walker_strategy="random_walker_1",
-            random_walker_strategy_params=RandomWalker1StrategyParams(
-                random_probability=random_probability,
-                random_probability_of_adding_edge=random_probability_of_adding_edge,
-                length_of_memory=length_of_memory,
-            ),
-            num_random_walker=num_random_walker,
-            searched_information=random.randint(0,((grid_width_height**2)/10)-1),
-            max_steps=max_steps,
-            random_walker_start_point_strategy = "RandomNode"
-        )
-
-        results.append(res)
-
-    # return average num_steps
-    return sum([r["convergence_time"] for r in results]) / len(results)
-
-# param_grid = {
-#     'random_probability': [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99],
-#     'random_probability_of_adding_edge': [0.005, 0.010, 0.015, 0.020, 0.1, 0.15, 0.2],
-#     'length_of_memory': [5, 10, 15, 50, 100, 150, 200, 300, 400, 500, 600, 700, 800],
-#     'num_random_walker': [10],
-# }
-#
-# for params in ParameterGrid(param_grid):
-#     avg_steps = simit(params['random_probability'], params['random_probability_of_adding_edge'], params['length_of_memory'], params['num_random_walker'])
-#
-#     print(f"{params['random_probability']}, {params['random_probability_of_adding_edge']}, {params['length_of_memory']}, {params['num_random_walker']}: {avg_steps}")
-#
-#     # also print to file (append)
-#     with open("results.txt", "a") as f:
-#         f.write(f"{params['random_probability']}, {params['random_probability_of_adding_edge']}, {params['length_of_memory']}, {params['num_random_walker']}: {avg_steps}\n")
-
-# use bayesopt
 
 import loguru
 loguru.logger.remove()
 loguru.logger.add("bayesopt.log", level="ERROR")
 
-def black_box_function(random_probability, random_probability_of_adding_edge, length_of_memory, num_random_walker):
-    return 1 - simit(random_probability, random_probability_of_adding_edge, int(length_of_memory), int(num_random_walker))
+grid_width_height = 50
+max_steps = grid_width_height * grid_width_height * 20
 
-pbounds = {
-    'random_probability': (0.6, 0.99),
-    'random_probability_of_adding_edge': (0.005, 0.22),
-    'length_of_memory': (5, 0.9*(grid_width_height**2)),
-    'num_random_walker': (2, grid_width_height)
+def simit(create_edge_strategy, random_probability, random_probability_of_adding_edge, length_of_memory, num_random_walker):
+    results = []
+    for i in range(15):
+        res = simulate(
+            graph_strategy="random",
+            graph_stratey_params=RandomStrategyParams(),
+            grid_width=grid_width_height,
+            grid_height=grid_width_height,
+            num_distinct_information=100,
+            random_walker_strategy="random_walker_3",
+            random_walker_strategy_params=RandomWalker3StrategyParams(
+                random_probability=random_probability,
+                create_edge_strategy="dynamic_similar_to_searched",
+                random_probability_to_create_edge=random_probability_of_adding_edge,
+                length_of_memory=length_of_memory,
+            ),
+            num_random_walker=num_random_walker,
+            searched_information=50,
+            max_steps=max_steps,
+            random_walker_start_point_strategy = RandomNodeStartPointStrategy()
+        )
+
+        results.append(res)
+
+    # return average num_steps
+    av = sum([r["num_steps"] for r in results]) / len(results)
+    return av
+
+param_grid = {
+    'create_edge_strategy': ['dynamic_similar_to_searched', 'dynamic_least_similar_to_searched', 'dynamic_similar', 'dynamic_random'],
+    'random_probability': [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99],
+    'random_probability_of_adding_edge': [0.1, 0.2, 0.7, 0.8, 0.9, 1.0],
+    'length_of_memory': [5, 10, 15, 50, 100, 150],
+    'num_random_walker': [5],
 }
 
-optimizer = BayesianOptimization(
-    f=black_box_function,
-    pbounds=pbounds,
-    random_state=1,
-)
+for params in ParameterGrid(param_grid):
+    avg_steps = simit(params['create_edge_strategy'], params['random_probability'], params['random_probability_of_adding_edge'], params['length_of_memory'], params['num_random_walker'])
 
-optimizer.maximize(
-    init_points=50,
-    n_iter=100,
-)
+    print(f"{params['create_edge_strategy']}: {params['random_probability']}, {params['random_probability_of_adding_edge']}, {params['length_of_memory']}, {params['num_random_walker']}: {avg_steps}")
 
-print(optimizer.max)
+    # also print to file (append)
+    with open("results.txt", "a") as f:
+        f.write(f"{params['create_edge_strategy']}: {params['random_probability']}, {params['random_probability_of_adding_edge']}, {params['length_of_memory']}, {params['num_random_walker']}: {avg_steps}\n")
+
+# use bayesopt
+
+#
+# def black_box_function(random_probability, random_probability_of_adding_edge, length_of_memory, num_random_walker):
+#     return 1 - simit(random_probability, random_probability_of_adding_edge, int(length_of_memory), int(num_random_walker))
+#
+# pbounds = {
+#     'random_probability': (0.6, 0.99),
+#     'random_probability_of_adding_edge': (0.005, 0.22),
+#     'length_of_memory': (5, 0.9*(grid_width_height**2)),
+#     'num_random_walker': (2, grid_width_height)
+# }
+#
+# optimizer = BayesianOptimization(
+#     f=black_box_function,
+#     pbounds=pbounds,
+#     random_state=1,
+# )
+#
+# optimizer.maximize(
+#     init_points=50,
+#     n_iter=100,
+# )
+#
+# print(optimizer.max)
 
 # TODO: Schreibe ein Programm, mit dem die untere Tabelle schön als csv importiert werden kann
 # |   iter    |  target   | length... | random... | random... |

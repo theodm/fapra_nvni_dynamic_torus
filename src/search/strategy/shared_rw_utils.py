@@ -1,20 +1,22 @@
 
 
 
-def get_neigbor_with_nearest_information(graph, current_node, searched_information):
+def get_neigbor_with_nearest_information(graph, current_node, searched_information, neighbor_list):
     """
     Gibt den Nachbarn dessen Information am nächsten an der gesuchten Information ist zurück.
     """
     # Wähle Nachbarn mit der kleinsten Differenz zur gesuchten Information
-    current_node_information = graph.nodes[current_node]["information"]
+    diff = 100000
+    next_node = None
+    for neighbor in neighbor_list:
+        if neighbor == current_node:
+            continue
 
-    # Sortiere Nachbarn nach Differenz zur gesuchten Information
-    sorted_neighbors = sorted(
-        graph.neighbors(current_node),
-        key=lambda x: abs(
-            graph.nodes[x]["information"] - searched_information
-        ),
-    )
+        neighbor_information = graph.nodes[neighbor]["information"]
 
-    return sorted_neighbors[0]
+        if abs(neighbor_information - searched_information) < diff:
+            diff = abs(neighbor_information - searched_information)
+            next_node = neighbor
+
+    return next_node
 
