@@ -74,11 +74,13 @@ class RandomWalker3:
         self.random_probability = random_probability
         self.length_of_memory = length_of_memory
         self.create_edge_strategy = create_edge_strategy
+        self.random_probability_to_create_edge = random_probability_to_create_edge
 
         self.last_nodes = deque([], length_of_memory)
 
         # Zufälliger Startknoten
         self.last_nodes.appendleft(start_point)
+        #self.last_nodes_without_current = deque([], length_of_memory - 1)
 
         # logger.info(f"RandomWalker {self.name} started at {self.current_node}")
 
@@ -93,7 +95,7 @@ class RandomWalker3:
 
         # Performance: Set statt Liste (O(1) statt O(n))
         last_nodes_set = set(self.last_nodes)
-        possible_nodes = [node for node in neighbor_list if node not in last_nodes_set]
+        possible_nodes = set(neighbor_list) - last_nodes_set
 
         # Wenn wir keine Nachbarn haben, die nicht schon besucht wurden,
         # dann müssen wir halt einen besuchen, den wir schon besucht haben.
@@ -102,7 +104,7 @@ class RandomWalker3:
 
         # Zufälliger Schritt
         if random.random() < self.random_probability:
-            next_node = random.choice(possible_nodes)
+            next_node = random.choice(list(possible_nodes))
         else:
             next_node = get_neigbor_with_nearest_information(
                 self.g, current_node, self.searched_information, possible_nodes
@@ -110,38 +112,41 @@ class RandomWalker3:
 
         self.last_nodes.appendleft(next_node)
 
+        if random.random() > self.random_probability_to_create_edge:
+            return []
+
         current_node = self.current_node()
 
         _last_nodes_without_current = [node for node in self.last_nodes if node != current_node]
+        #_last_nodes_without_current_set = self.last_nodes_without_current
+        try:
+            if self.create_edge_strategy == "dynamic_similar_to_searched":
+                # connect current node with the nearest distance node to searched information in the memory
+                _last_nodes_without_current_sorted_by_dist = sorted(_last_nodes_without_current, key=lambda node: abs(self.g.nodes[node]["information"] - self.searched_information))
 
-        if self.create_edge_strategy == "dynamic_similar_to_searched":
-            for i in range (0, self.last_nodes):
+                return [(current_node, _last_nodes_without_current_sorted_by_dist[0])]
 
-            # connect current node with the nearest distance node to searched information in the memory
-            _last_nodes_without_current_sorted_by_dist = sorted(_last_nodes_without_current, key=lambda node: abs(self.g.nodes[node]["information"] - self.searched_information))
+            elif self.create_edge_strategy == "dynamic_least_similar_to_searched":
+                # connect current node with the highest distance node to searched information in the memory
+                _last_nodes_without_current_sorted_by_dist = sorted(_last_nodes_without_current, key=lambda node: abs(self.g.nodes[node]["information"] - self.searched_information))
 
-            return [(current_node, _last_nodes_without_current_sorted_by_dist[0])]
+                return [(current_node, _last_nodes_without_current_sorted_by_dist[-1])]
 
-        elif self.create_edge_strategy == "dynamic_least_similar_to_searched":
-            # connect current node with the highest distance node to searched information in the memory
-            _last_nodes_without_current_sorted_by_dist = sorted(_last_nodes_without_current, key=lambda node: abs(self.g.nodes[node]["information"] - self.searched_information))
+            elif self.create_edge_strategy == "dynamic_similar":
+                # connect current node with the nearest information node to current node
+                _last_nodes_without_current_sorted_by_dist = sorted(_last_nodes_without_current, key=lambda node: abs(self.g.nodes[node]["information"] - self.g.nodes[
+                    current_node]["information"]))
 
-            return [(current_node, _last_nodes_without_current_sorted_by_dist[-1])]
+                return [(current_node, _last_nodes_without_current_sorted_by_dist[0])]
+            elif self.create_edge_strategy == "dynamic_random":
+                # connect current node with a random node in the memory
+                return [(current_node, random.choice(_last_nodes_without_current))]
 
-        elif self.create_edge_strategy == "dynamic_similar":
-            # connect current node with the nearest information node to current node
-            _last_nodes_without_current_sorted_by_dist = sorted(_last_nodes_without_current, key=lambda node: abs(self.g.nodes[node]["information"] - self.g.nodes[
-                current_node]["information"]))
 
-            return [(current_node, _last_nodes_without_current_sorted_by_dist[0])]
-        elif self.create_edge_strategy == "dynamic_random":
-            # connect current node with a random node in the memory
-
-            return [(current_node, random.choice(_last_nodes_without_current))]
-
-            
-        raise Exception("Unknown create_edge_strategy " + self.create_edge_strategy)
-
+            raise Exception("Unknown create_edge_strategy " + self.create_edge_strategy)
+        finally:
+            #self.last_nodes_without_current.appendleft(current_node)
+            pass
 
 
 

@@ -10,12 +10,15 @@ import loguru
 loguru.logger.remove()
 loguru.logger.add("bayesopt.log", level="ERROR")
 
-grid_width_height = 50
-max_steps = grid_width_height * grid_width_height * 20
+grid_width_height = 100
+max_steps = grid_width_height * grid_width_height * 10
 
 def simit(create_edge_strategy, random_probability, random_probability_of_adding_edge, length_of_memory, num_random_walker):
     results = []
-    for i in range(15):
+    for i in range(30):
+        # calculate graph_seed from random_probability, random_probability_of_adding_edge, length_of_memory, num_random_walker, i but not create_edge_strategy
+        graph_seed = hash((random_probability, random_probability_of_adding_edge, length_of_memory, num_random_walker, i)) % (2**32)
+
         res = simulate(
             graph_strategy="random",
             graph_stratey_params=RandomStrategyParams(),
@@ -25,34 +28,41 @@ def simit(create_edge_strategy, random_probability, random_probability_of_adding
             random_walker_strategy="random_walker_3",
             random_walker_strategy_params=RandomWalker3StrategyParams(
                 random_probability=random_probability,
-                create_edge_strategy="dynamic_similar_to_searched",
+                create_edge_strategy=create_edge_strategy,
                 random_probability_to_create_edge=random_probability_of_adding_edge,
                 length_of_memory=length_of_memory,
             ),
             num_random_walker=num_random_walker,
             searched_information=50,
             max_steps=max_steps,
-            random_walker_start_point_strategy = RandomNodeStartPointStrategy()
+            random_walker_start_point_strategy = RandomNodeStartPointStrategy(),
+            graph_seed=graph_seed
         )
 
         results.append(res)
 
     # return average num_steps
     av = sum([r["num_steps"] for r in results]) / len(results)
-    return av
+    # return std_dev
+    stddev = (sum([(r["num_steps"] - av)**2 for r in results]) / len(results))**0.5
+    # return min, max
+    _min = min([r["num_steps"] for r in results])
+    _max = max([r["num_steps"] for r in results])
+
+    return av, stddev, _min, _max
 
 param_grid = {
-    'create_edge_strategy': ['dynamic_similar_to_searched', 'dynamic_least_similar_to_searched', 'dynamic_similar', 'dynamic_random'],
-    'random_probability': [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99],
-    'random_probability_of_adding_edge': [0.1, 0.2, 0.7, 0.8, 0.9, 1.0],
-    'length_of_memory': [5, 10, 15, 50, 100, 150],
+    'create_edge_strategy': [ 'dynamic_similar', 'dynamic_random'],
+    'random_probability': [0.5],
+    'random_probability_of_adding_edge': [0.0, 0.1, 0.3, 0.5, 0.7, 0.9, 1.0],
+    'length_of_memory': [50, 100, 200, 500],
     'num_random_walker': [5],
 }
 
 for params in ParameterGrid(param_grid):
-    avg_steps = simit(params['create_edge_strategy'], params['random_probability'], params['random_probability_of_adding_edge'], params['length_of_memory'], params['num_random_walker'])
+    avg_steps, stddev, _min, _max = simit(params['create_edge_strategy'], params['random_probability'], params['random_probability_of_adding_edge'], params['length_of_memory'], params['num_random_walker'])
 
-    print(f"{params['create_edge_strategy']}: {params['random_probability']}, {params['random_probability_of_adding_edge']}, {params['length_of_memory']}, {params['num_random_walker']}: {avg_steps}")
+    print(f"{params['create_edge_strategy']}: {params['random_probability']}, {params['random_probability_of_adding_edge']}, {params['length_of_memory']}, {params['num_random_walker']}: {avg_steps} ({stddev}, {_min}, {_max}) ")
 
     # also print to file (append)
     with open("results.txt", "a") as f:

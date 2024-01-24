@@ -3039,3 +3039,9 @@ bayesopt.log
 /src/csv/graphs/fd76a7f541f461c39323ec5ddd62c6925da32bd6de87f72b9510e6861d8c08a1.graphml
 /src/csv/output/rw2.csv
 /src/csv/data.csv
+/src/notebooks/cachedir/
+/venv_pypy/
+/venv_pypy2/
+/venv_pypy3/
+/venv_pypy_3/
+/venv_pypyv3/

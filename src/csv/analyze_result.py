@@ -28,7 +28,6 @@ import loguru
 
 loguru.logger.remove()
 
-
 import os
 import csv
 
@@ -44,7 +43,6 @@ for file in os.listdir(OUTPUT_FOLDER):
     if file.endswith(".csv"):
         csv_files.append(os.path.join(OUTPUT_FOLDER, file))
 
-
 import pandas as pd
 
 # group executions by csv file name and average the result_anzahl_schritte for each group
@@ -53,19 +51,208 @@ res = []
 for csv_file in csv_files:
     df = pd.read_csv(csv_file)
 
-    res.append((str(csv_file), df.groupby("group").mean("result_anzahl_schritte")))
+    res.append((str(csv_file), df.groupby("group")))
 
 # sort the groups by the average result_anzahl_schritte
-res.sort(key=lambda x: x[1].values[0])
 
-# print the sorted groups
-for file_name, df in res:
-    print(file_name)
-    for d in df["result_anzahl_schritte"].items():
-        print(str(d[0]) + " - " + str(d[1]))
+print("TEST")
 
-    print("")
+import plotly.graph_objects as go
+
+fig = go.Figure()
+
+groups = [
+    "random_100x100_1000_100_random_each_<not defined>",
+    "random_100x100_1000_100_same_<not defined>",
+    "random_100x100_1000_10_random_each_<not defined>",
+    "random_100x100_1000_10_same_<not defined>",
+    "random_100x100_1000_1_random_each_<not defined>",
+    "random_100x100_1000_1_same_<not defined>",
+    "random_100x100_100_100_random_each_<not defined>",
+    "random_100x100_100_100_same_<not defined>",
+    "random_100x100_100_10_random_each_<not defined>",
+    "random_100x100_100_10_same_<not defined>",
+    "random_100x100_100_1_random_each_<not defined>",
+    "random_100x100_100_1_same_<not defined>",
+    "random_100x100_10_100_random_each_<not defined>",
+    "random_100x100_10_100_same_<not defined>",
+    "random_100x100_10_10_random_each_<not defined>",
+    "random_100x100_10_10_same_<not defined>",
+    "random_100x100_10_1_random_each_<not defined>",
+    "random_100x100_10_1_same_<not defined>",
+    # "random_200x300_1000_100_random_each_<not defined>",
+    # "random_200x300_1000_100_same_<not defined>",
+    # "random_200x300_1000_10_random_each_<not defined>",
+    # "random_200x300_1000_10_same_<not defined>",
+    # "random_200x300_1000_1_random_each_<not defined>",
+    # "random_200x300_1000_1_same_<not defined>",
+    # "random_200x300_100_100_random_each_<not defined>",
+    # "random_200x300_100_100_same_<not defined>",
+    # "random_200x300_100_10_random_each_<not defined>",
+    # "random_200x300_100_10_same_<not defined>",
+    # "random_200x300_100_1_random_each_<not defined>",
+    # "random_200x300_100_1_same_<not defined>",
+    # "random_200x300_10_100_random_each_<not defined>",
+    # "random_200x300_10_100_same_<not defined>",
+    # "random_200x300_10_10_random_each_<not defined>",
+    # "random_200x300_10_10_same_<not defined>",
+    # "random_200x300_10_1_random_each_<not defined>",
+    # "random_200x300_10_1_same_<not defined>",
+    "random_normal_100x100_1000_100_random_each_normal_häufig",
+    "random_normal_100x100_1000_100_random_each_normal_mittel",
+    "random_normal_100x100_1000_100_random_each_normal_selten",
+    "random_normal_100x100_1000_100_same_normal_häufig",
+    "random_normal_100x100_1000_100_same_normal_mittel",
+    "random_normal_100x100_1000_100_same_normal_selten",
+    "random_normal_100x100_1000_10_random_each_normal_häufig",
+    "random_normal_100x100_1000_10_random_each_normal_mittel",
+    "random_normal_100x100_1000_10_random_each_normal_selten",
+    "random_normal_100x100_1000_10_same_normal_häufig",
+    "random_normal_100x100_1000_10_same_normal_mittel",
+    "random_normal_100x100_1000_10_same_normal_selten",
+    "random_normal_100x100_1000_1_random_each_normal_häufig",
+    "random_normal_100x100_1000_1_random_each_normal_mittel",
+    "random_normal_100x100_1000_1_random_each_normal_selten",
+    "random_normal_100x100_1000_1_same_normal_häufig",
+    "random_normal_100x100_1000_1_same_normal_mittel",
+    "random_normal_100x100_1000_1_same_normal_selten",
+    "random_normal_100x100_100_100_random_each_normal_häufig",
+    "random_normal_100x100_100_100_random_each_normal_mittel",
+    "random_normal_100x100_100_100_random_each_normal_selten",
+    "random_normal_100x100_100_100_same_normal_häufig",
+    "random_normal_100x100_100_100_same_normal_mittel",
+    "random_normal_100x100_100_100_same_normal_selten",
+    "random_normal_100x100_100_10_random_each_normal_häufig",
+    "random_normal_100x100_100_10_random_each_normal_mittel",
+    "random_normal_100x100_100_10_random_each_normal_selten",
+    "random_normal_100x100_100_10_same_normal_häufig",
+    "random_normal_100x100_100_10_same_normal_mittel",
+    "random_normal_100x100_100_10_same_normal_selten",
+    "random_normal_100x100_100_1_random_each_normal_häufig",
+    "random_normal_100x100_100_1_random_each_normal_mittel",
+    "random_normal_100x100_100_1_random_each_normal_selten",
+    "random_normal_100x100_100_1_same_normal_häufig",
+    "random_normal_100x100_100_1_same_normal_mittel",
+    "random_normal_100x100_100_1_same_normal_selten",
+    "random_normal_100x100_10_100_random_each_normal_häufig",
+    "random_normal_100x100_10_100_random_each_normal_mittel",
+    "random_normal_100x100_10_100_random_each_normal_selten",
+    "random_normal_100x100_10_100_same_normal_häufig",
+    "random_normal_100x100_10_100_same_normal_mittel",
+    "random_normal_100x100_10_100_same_normal_selten",
+    "random_normal_100x100_10_10_random_each_normal_häufig",
+    "random_normal_100x100_10_10_random_each_normal_mittel",
+    "random_normal_100x100_10_10_random_each_normal_selten",
+    "random_normal_100x100_10_10_same_normal_häufig",
+    "random_normal_100x100_10_10_same_normal_mittel",
+    "random_normal_100x100_10_10_same_normal_selten",
+    "random_normal_100x100_10_1_random_each_normal_häufig",
+    "random_normal_100x100_10_1_random_each_normal_mittel",
+    "random_normal_100x100_10_1_random_each_normal_selten",
+    "random_normal_100x100_10_1_same_normal_häufig",
+    "random_normal_100x100_10_1_same_normal_mittel",
+    "random_normal_100x100_10_1_same_normal_selten",
+    # "random_normal_200x300_1000_100_random_each_normal_häufig",
+    # "random_normal_200x300_1000_100_random_each_normal_mittel",
+    # "random_normal_200x300_1000_100_random_each_normal_selten",
+    # "random_normal_200x300_1000_100_same_normal_häufig",
+    # "random_normal_200x300_1000_100_same_normal_mittel",
+    # "random_normal_200x300_1000_100_same_normal_selten",
+    # "random_normal_200x300_1000_10_random_each_normal_häufig",
+    # "random_normal_200x300_1000_10_random_each_normal_mittel",
+    # "random_normal_200x300_1000_10_random_each_normal_selten",
+    # "random_normal_200x300_1000_10_same_normal_häufig",
+    # "random_normal_200x300_1000_10_same_normal_mittel",
+    # "random_normal_200x300_1000_10_same_normal_selten",
+    # "random_normal_200x300_1000_1_random_each_normal_häufig",
+    # "random_normal_200x300_1000_1_random_each_normal_mittel",
+    # "random_normal_200x300_1000_1_random_each_normal_selten",
+    # "random_normal_200x300_1000_1_same_normal_häufig",
+    # "random_normal_200x300_1000_1_same_normal_mittel",
+    # "random_normal_200x300_1000_1_same_normal_selten",
+    # "random_normal_200x300_100_100_random_each_normal_häufig",
+    # "random_normal_200x300_100_100_random_each_normal_mittel",
+    # "random_normal_200x300_100_100_random_each_normal_selten",
+    # "random_normal_200x300_100_100_same_normal_häufig",
+    # "random_normal_200x300_100_100_same_normal_mittel",
+    # "random_normal_200x300_100_100_same_normal_selten",
+    # "random_normal_200x300_100_10_random_each_normal_häufig",
+    # "random_normal_200x300_100_10_random_each_normal_mittel",
+    # "random_normal_200x300_100_10_random_each_normal_selten",
+    # "random_normal_200x300_100_10_same_normal_häufig",
+    # "random_normal_200x300_100_10_same_normal_mittel",
+    # "random_normal_200x300_100_10_same_normal_selten",
+    # "random_normal_200x300_100_1_random_each_normal_häufig",
+    # "random_normal_200x300_100_1_random_each_normal_mittel",
+    # "random_normal_200x300_100_1_random_each_normal_selten",
+    # "random_normal_200x300_100_1_same_normal_häufig",
+    # "random_normal_200x300_100_1_same_normal_mittel",
+    # "random_normal_200x300_100_1_same_normal_selten",
+    # "random_normal_200x300_10_100_random_each_normal_häufig",
+    # "random_normal_200x300_10_100_random_each_normal_mittel",
+    # "random_normal_200x300_10_100_random_each_normal_selten",
+    # "random_normal_200x300_10_100_same_normal_häufig",
+    # "random_normal_200x300_10_100_same_normal_mittel",
+    # "random_normal_200x300_10_100_same_normal_selten",
+    # "random_normal_200x300_10_10_random_each_normal_häufig",
+    # "random_normal_200x300_10_10_random_each_normal_mittel",
+    # "random_normal_200x300_10_10_random_each_normal_selten",
+    # "random_normal_200x300_10_10_same_normal_häufig",
+    # "random_normal_200x300_10_10_same_normal_mittel",
+    # "random_normal_200x300_10_10_same_normal_selten",
+    # "random_normal_200x300_10_1_random_each_normal_häufig",
+    # "random_normal_200x300_10_1_random_each_normal_mittel",
+    # "random_normal_200x300_10_1_random_each_normal_selten",
+    # "random_normal_200x300_10_1_same_normal_häufig",
+    # "random_normal_200x300_10_1_same_normal_mittel",
+    # "random_normal_200x300_10_1_same_normal_selten",
+]
+datas = [
+    # {
+    #    "name":
+    #    "x":
+    #    "y":
+    # }
+]
+
+# draw multibarchart with plotly
+for csv_file, df in res:
+    y = []
+
+    for group in groups:
+        _df = df.get_group(group)
+
+        y.append(_df["result_anzahl_schritte"])
+
+    datas.append(
+        {
+            "name": str(csv_file),
+            "x": groups,
+            "y": y
+        }
+    )
 
 
 
+fig = go.Figure()
+# Use x instead of y argument for horizontal plot
 
+for gi in range(len(groups)):
+    g = groups[gi]
+
+    for data in datas:
+        fig.add_trace(go.Box(y=data["y"][gi], legendgroup=data["name"]))
+
+
+fig.show()
+
+# plot = go.Figure(data=[
+#     go.Bar(
+#         name=data["name"],
+#         x=groups,
+#         y=[i.mean() for i in data["y"]]
+#     ) for data in datas
+# ]
+# )
+#
+# plot.show()

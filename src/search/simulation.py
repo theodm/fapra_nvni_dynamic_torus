@@ -212,6 +212,8 @@ def simulate(
     # Hier fangen wir an, die Zeit zu messen
     start = time.time()
 
+    edges_added = 0
+
     # Führe die Simulation durch und
     # starten mit dem ersten Simulationsschritt (hier wird nicht mit 0 begonnen)
     step = 1
@@ -246,7 +248,9 @@ def simulate(
 
         # Und nun: tatsächlich die Kanten hinzufügen
         for edge in edges_to_add:
+
             if not g.has_edge(edge[0], edge[1]):
+                edges_added = edges_added + 1
                 g.add_edge(edge[0], edge[1])
 
         # Hier werten wir den aktuell gemachten Schritt aus:
@@ -321,7 +325,9 @@ def simulate(
         # Wie sieht der Graph nun aus?
         "graph": g,
         # Wie lange hat die Simulation gedauert?
-        "convergence_time": sim_time
+        "convergence_time": sim_time,
+
+        "edges_added": edges_added,
 
     }
 

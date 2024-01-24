@@ -36,13 +36,16 @@ class ExecutionParams:
 class ExecutionResult:
     anzahl_schritte: int
 
+    anzahl_erstellter_kanten: int
+    runtime: float
+
 
 def read_csv_and_execute(input_file, output_file, fn, parallel=False):
     global _num_rows
 
     @memory.cache
-    def _fn(params: ExecutionParams) -> ExecutionResult:
-        print(f"Executing row {params.row_id} of {_num_rows} ({params.group})")
+    def _fn(params: ExecutionParams, output_file_name) -> ExecutionResult:
+        print(f"Executing row {params.row_id} of {_num_rows} ({params.group}) [{output_file_name}]")
 
         start_time = time.time()
 
@@ -78,7 +81,10 @@ def read_csv_and_execute(input_file, output_file, fn, parallel=False):
             "group",
             "normal_mean",
             "normal_std_dev",
-            "test_check_num_nodes"
+            "test_check_num_nodes",
+
+            "result_anzahl_erstellter_kanten",
+            "result_runtime"
         ]
     )
 
@@ -89,6 +95,30 @@ def read_csv_and_execute(input_file, output_file, fn, parallel=False):
 
     i = 1
     for row in icsv:
+
+        # id 0
+        # execution_num 1
+        # seed 2
+        # erstellungsmethode 3
+        # groesse 4
+        # d_groesse_width 5
+        # d_groesse_height 6
+        # anzahl_informationen 7
+        # anzahl_walker 8
+        # startpunkt 9
+        # startpunkte 10
+        # anzahl_simulationen 11
+        # gesuchte_information 12
+        # gesuchte_information_num 13
+        # group 14
+        # normal_mean 15
+        # normal_std_dev 16
+        # test_check_num_nodes 17
+
+        # skip empty rows
+        if len(row) == 0:
+            continue
+
         # access rows by name
         params = ExecutionParams(
             row_id=i,
@@ -122,7 +152,7 @@ def read_csv_and_execute(input_file, output_file, fn, parallel=False):
         from joblib import Parallel, delayed
 
         def __fn(row, params):
-            return (row, _fn(params))
+            return (row, _fn(params, str(output_file)))
 
         results = Parallel(n_jobs=-1)(delayed(__fn)(row, params) for row, params in executions)
 
@@ -150,4 +180,6 @@ def read_csv_and_execute(input_file, output_file, fn, parallel=False):
             row[15],
             row[16],
             row[17],
+            result.anzahl_erstellter_kanten,
+            result.runtime
         ])

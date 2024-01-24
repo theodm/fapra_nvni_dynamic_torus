@@ -219,7 +219,7 @@ class ColorModeNumberOfTimesVisited:
 
     color_map: list[str]
 
-    def __init__(self, graph: networkx.Graph, custom_max: int | None):
+    def __init__(self, graph: networkx.Graph, custom_max: int | None = None):
         if not custom_max:
             max_number_of_times_visited = max(
                 [graph.nodes[node]["visited"] for node in graph.nodes()]
