@@ -62,31 +62,36 @@ print(_ndf["strategy"].unique())
 
 res_data = []
 
+# calculate result_anzahl_schritte mal anzah_walker (=num_messages)
+_ndf["num_messages"] = _ndf["result_anzahl_schritte"] * _ndf["anzahl_walker"]
+
 for strategy in _ndf["strategy"].unique():
-    for groesse in _ndf["groesse"].unique():
-        for anzahl_walker in _ndf["anzahl_walker"].unique():
-
-            r = [
-                strategy,
-                groesse,
-                anzahl_walker
-            ]
-
-            for startpunkt in ["random_each", "same"]:
-                # get all rows with the current strategy, groesse, anzahl_walker and startpunkt
-                _df = _ndf[
-                    (_ndf["strategy"] == strategy)
-                    & (_ndf["groesse"] == groesse)
-                    & (_ndf["anzahl_walker"] == anzahl_walker)
-                    & (_ndf["startpunkt"] == startpunkt)
+    for erstellungsmethode in _ndf["erstellungsmethode"].unique():
+        for anzahl_der_informationen in _ndf["anzahl_informationen"].unique():
+            for groesse in _ndf["groesse"].unique():
+                r = [
+                    strategy,
+                    groesse,
+                    erstellungsmethode,
+                    anzahl_der_informationen,
                 ]
 
-                # get the average of the column "result_anzahl_schritte"
-                avg = _df["result_anzahl_schritte"].mean()
+                for anzahl_walker in _ndf["anzahl_walker"].unique():
+                    # get all rows with the current strategy, groesse, anzahl_walker and startpunkt
+                    _df = _ndf[
+                        (_ndf["strategy"] == strategy)
+                        & (_ndf["groesse"] == groesse)
+                        & (_ndf["anzahl_walker"] == anzahl_walker)
+                        & (_ndf["erstellungsmethode"] == erstellungsmethode)
+                        & (_ndf["anzahl_informationen"] == anzahl_der_informationen)
+                    ]
 
-                r.append(avg)
+                    # get the average of the column "result_anzahl_schritte"
+                    avg = _df["num_messages"].mean()
 
-            res_data.append(r)
+                    r.append(avg)
+
+                res_data.append(r)
 
 # create a new dataframe with the result data
 res_df = pd.DataFrame(
@@ -94,22 +99,21 @@ res_df = pd.DataFrame(
     columns=[
         "strategy",
         "groesse",
-        "anzahl_walker",
-        "avg_result_anzahl_schritte_random_each",
-        "avg_result_anzahl_schritte_same"
+        "erstellungsmethode",
+        "anzahl_der_informationen",
+        "avg_num_messages_1",
+        "avg_num_messages_10",
+        "avg_num_messages_100",
     ]
 )
 
-# add column "increase_prct" to dataframe which contains the percentage of increase of the column "avg_result_anzahl_schritte_same" compared to the column "avg_result_anzahl_schritte_random_each"
-res_df["increase_prct"] = (
-    res_df["avg_result_anzahl_schritte_random_each"]
-    / res_df["avg_result_anzahl_schritte_same"]
-    * 100 - 100
-)
 
 # remove prefix output/ and suffix .csv from strategy
 res_df["strategy"] = res_df["strategy"].str.replace("output/", "").str.replace(".csv", "")
 
+# add column "is10_bigger_1" and "is100_bigger_10"
+res_df["is10_bigger_1"] = res_df["avg_num_messages_10"] > res_df["avg_num_messages_1"]
+res_df["is100_bigger_10"] = res_df["avg_num_messages_100"] > res_df["avg_num_messages_10"]
 
 # round all values to 2 decimal places
 res_df = res_df.round(2)

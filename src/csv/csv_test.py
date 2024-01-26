@@ -120,14 +120,14 @@ read_csv_and_execute(
 
 read_csv_and_execute(
     "data_200.csv",
-    "output2/dynamic_similar_0.5_0.0_200.csv",
+    "output/dynamic_similar_0.5_0.0_200.csv",
     dynamic_similar_0_5_0_0_200,
     parallel=True
 )
 
 read_csv_and_execute(
     "data_200.csv",
-    "output2/dynamic_random_0.5_0.0_200.csv",
+    "output/dynamic_random_0.5_0.0_200.csv",
     dynamic_random_0_5_0_0_200,
     parallel=True
 )

@@ -56,7 +56,12 @@ def execute_sim(strategy, edge_prob):
             graph_seed=graph_seed
         )
 
-        results.append(res)
+        results.append(
+            {
+                "num_steps": res["num_steps"],
+                "edges_added": res["edges_added"]
+            }
+        )
 
     av = sum([r["num_steps"] for r in results]) / len(results)
     # return std_dev
