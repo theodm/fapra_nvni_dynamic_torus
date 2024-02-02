@@ -13,4 +13,4 @@ g = sh_create_random_normal_2d_grid_network(
     small_world=True,
 )
 
-draw_torus_2d(g, width=10, height=10, color_mode=ColorModeInformation(10))
+draw_torus_2d(g, width=50, height=50, color_mode=ColorModeInformation(10))

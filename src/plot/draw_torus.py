@@ -260,6 +260,7 @@ def draw_torus_2d(
     | ColorModeInformationDistanceToTarget
     | ColorModeNumberOfTimesVisited,
     size_mode: SizeModeNone | SizeModeHighlightSearchedInformation = SizeModeNone(),
+    show_edges = True
 ):
     """
     Gibt den Graphen mittels Plotly in 2D als Gitter aus.
@@ -343,16 +344,17 @@ def draw_torus_2d(
     data = [trace_nodes]
     fig = go.Figure(data=data, layout=layout)
 
-    for edge in line_points_edges:
-        for i in range(len(edge) - 1):
-            fig.add_shape(
-                type="line",
-                x0=edge[i][0],
-                y0=edge[i][1],
-                x1=edge[i + 1][0],
-                y1=edge[i + 1][1],
-                line=dict(color="rgba(0,0,0,0.25)", width=2),
-            )
+    if show_edges:
+        for edge in line_points_edges:
+            for i in range(len(edge) - 1):
+                fig.add_shape(
+                    type="line",
+                    x0=edge[i][0],
+                    y0=edge[i][1],
+                    x1=edge[i + 1][0],
+                    y1=edge[i + 1][1],
+                    line=dict(color="rgba(0,0,0,0.25)", width=2),
+                )
 
     fig.show()
 
